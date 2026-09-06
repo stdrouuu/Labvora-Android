@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Info
@@ -232,7 +233,7 @@ fun OrderReviewScreen(
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = Color(0xFF374151),
+                                tint = Color.Black,
                                 modifier = Modifier
                                     .size(18.dp)
                                     .offset(y = 1.dp)
@@ -264,9 +265,9 @@ fun OrderReviewScreen(
                             horizontalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Schedule,
+                                imageVector = Icons.Default.CalendarMonth,
                                 contentDescription = null,
-                                tint = Color(0xFF374151),
+                                tint = Color.Black,
                                 modifier = Modifier
                                     .size(18.dp)
                                     .offset(y = 1.dp)

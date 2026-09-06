@@ -679,7 +679,7 @@ fun CartItemCard(
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "Klinik",
-                            tint = Color(0xFF3CB7A6),
+                            tint = Color.Black,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -697,7 +697,7 @@ fun CartItemCard(
                         Icon(
                             imageVector = Icons.Default.CalendarMonth,
                             contentDescription = "Tanggal",
-                            tint = Color(0xFF6B7280),
+                            tint = Color.Black,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -713,7 +713,7 @@ fun CartItemCard(
                         Icon(
                             imageVector = Icons.Default.AccessTime,
                             contentDescription = "Waktu Pemeriksaan",
-                            tint = Color(0xFF6B7280),
+                            tint = Color.Black,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
