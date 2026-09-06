@@ -5,6 +5,8 @@ package org.ukrida.labvora.ui.screen
 // password: 123456 or 123456
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -330,6 +332,11 @@ fun LoginScreen(
                     // Button Masuk
                     val loginInteractionSource = remember { MutableInteractionSource() }
                     val isLoginPressed by loginInteractionSource.collectIsPressedAsState()
+                    val loginBtnColor by animateColorAsState(
+                        targetValue = if (isLoginPressed) Color(0xFF9CA3AF) else Color(0xFF3CAEA3),
+                        animationSpec = tween(durationMillis = 100),
+                        label = "loginBtnColor"
+                    )
 
                     Button(
                         onClick = {
@@ -342,8 +349,14 @@ fun LoginScreen(
                         },
                         interactionSource = loginInteractionSource,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isLoginPressed) Color(0xFF9CA3AF) else Color(0xFF3CAEA3),
-                            contentColor = Color.White
+                            containerColor = loginBtnColor,
+                            contentColor = Color.White,
+                            disabledContainerColor = Color(0xFF9CA3AF),
+                            disabledContentColor = Color.White
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 0.dp,
+                            pressedElevation = 0.dp
                         ),
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier

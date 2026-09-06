@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Labvora" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Labvora" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Hilangkan preview/splash screen sebelum activity tampil -->
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowBackground">@color/white</item>
+    </style>
+
 </resources>
