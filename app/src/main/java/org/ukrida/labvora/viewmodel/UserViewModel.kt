@@ -54,9 +54,11 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
     }
 
     var loginError = mutableStateOf<String?>(null)
+    var isLoggingIn = mutableStateOf(false)
 
     fun login(username: String, password: String) {
         viewModelScope.launch {
+            isLoggingIn.value = true
             loginError.value = null
             try {
                 currentUser.value = repo.login(username, password)
@@ -75,6 +77,8 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
                 e.printStackTrace()
                 loginError.value = "Terjadi kesalahan: ${e.localizedMessage ?: "Coba lagi nanti."}"
                 currentUser.value = null
+            } finally {
+                isLoggingIn.value = false
             }
         }
     }

@@ -106,7 +106,7 @@ fun MainScreen(
                         badge = {
                             if (cartViewModel.cartItemCount > 0) {
                                 Badge(
-                                    containerColor = Color(0xFFE11D48),
+                                    containerColor = Color(0xFFF75F65),
                                     contentColor = Color.White
                                 ) {
                                     Text(

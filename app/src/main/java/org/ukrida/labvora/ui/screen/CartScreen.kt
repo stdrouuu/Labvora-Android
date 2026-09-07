@@ -67,6 +67,7 @@ fun CartScreen(
     val userId = userViewModel.currentUser.value?.id ?: 0
 
     var editingCartItem by remember { mutableStateOf<CartItem?>(null) }
+    var deletingCartItem by remember { mutableStateOf<CartItem?>(null) }
 
     LaunchedEffect(cartViewModel.toastMessage.value) {
         cartViewModel.toastMessage.value?.let { msg ->
@@ -152,7 +153,7 @@ fun CartScreen(
                                 text = cartViewModel.totalPriceFormatted,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFFE11D48)
+                                color = Color(0xFFF75F65)
                             )
                             if (cartViewModel.checkedCount > 0) {
                                 Text(
@@ -169,7 +170,7 @@ fun CartScreen(
                             },
                             enabled = cartViewModel.checkedCount > 0 && !cartViewModel.isCheckingOut.value,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFE11D48),
+                                containerColor = Color(0xFFF75F65),
                                 disabledContainerColor = Color(0xFFFDA4AF)
                             ),
                             shape = RoundedCornerShape(14.dp),
@@ -260,7 +261,7 @@ fun CartScreen(
                             item = item,
                             onToggleCheck = { cartViewModel.toggleItemChecked(item.id, context) },
                             onEditSchedule = { editingCartItem = item },
-                            onRemove = { cartViewModel.removeFromCart(item.id, context) }
+                            onRemove = { deletingCartItem = item }
                         )
                     }
 
@@ -337,7 +338,7 @@ fun CartScreen(
                                             text = cartViewModel.totalPriceFormatted,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.ExtraBold,
-                                            color = Color(0xFFE11D48)
+                                            color = Color(0xFFF75F65)
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -364,6 +365,52 @@ fun CartScreen(
             onConfirm = { clinic, date, time ->
                 cartViewModel.updateItemSchedule(editingCartItem!!.id, clinic, date, time, context)
                 editingCartItem = null
+            }
+        )
+    }
+
+    // Konfirmasi Hapus Item Keranjang
+    if (deletingCartItem != null) {
+        AlertDialog(
+            onDismissRequest = { deletingCartItem = null },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = Color.White,
+            title = {
+                Text(
+                    text = "Hapus dari Keranjang?",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1F2937)
+                )
+            },
+            text = {
+                Text(
+                    text = "Apakah Anda yakin ingin menghapus \"${deletingCartItem!!.test.title}\" dari keranjang?",
+                    fontSize = 13.sp,
+                    color = Color(0xFF6B7280),
+                    lineHeight = 18.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        cartViewModel.removeFromCart(deletingCartItem!!.id, context)
+                        deletingCartItem = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF75F65)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Hapus", fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { deletingCartItem = null },
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+                ) {
+                    Text("Batal", fontWeight = FontWeight.Bold, color = Color(0xFF6B7280))
+                }
             }
         )
     }
@@ -465,17 +512,18 @@ fun CartScreen(
                             }
                         }
                     } else {
-                        // Alert 2: Petunjuk Pembayaran
+                        // Alert 2: Petunjuk Pembayaran — merah sesuai theme Labvora
                         Box(
                             modifier = Modifier
                                 .size(64.dp)
-                                .background(Color(0xFFFEF3C7), CircleShape),
+                                .background(Color(0xFFFEE2E2), CircleShape)
+                                .border(1.dp, Color(0xFFFECACA), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Info,
                                 contentDescription = "Info Administrasi",
-                                tint = Color(0xFFD97706),
+                                tint = Color(0xFFEF4444),
                                 modifier = Modifier.size(32.dp)
                             )
                         }
@@ -634,7 +682,7 @@ fun CartItemCard(
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
                                 contentDescription = "Hapus Item",
-                                tint = Color(0xFFEF4444)
+                                tint = Color(0xFFF75F65)
                             )
                         }
                     }
@@ -800,13 +848,13 @@ fun EditScheduleDialog(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Slot Pagi (Sunrise)
+            // Slot Pagi (Sunrise) — outline konsisten
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.WbTwilight,
                     contentDescription = "Pagi",
                     tint = Color(0xFF374151),
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(

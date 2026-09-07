@@ -397,31 +397,65 @@ fun HomeScreen(
                 }
             }
 
-            Row(
+            val popularScrollState = rememberScrollState()
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    .padding(top = 16.dp, bottom = 8.dp)
             ) {
-                PopularTestCard(
-                    title = "Cek Hematologi (Lengkap)",
-                    desc = "Total, LDL, HDL & Trigliserida",
-                    buttonColor = Color(0xFFF86066),
-                    onPesanClick = { onNavigateToDetail(1) }
-                )
-                PopularTestCard(
-                    title = "Hitung Jenis Leukosit",
-                    desc = "Pemeriksaan Basofil, Eosinofil, Neutrofil, Limfosit, dan Monosit.",
-                    buttonColor = Color(0xFFFFA92A),
-                    onPesanClick = { onNavigateToDetail(2) }
-                )
-                PopularTestCard(
-                    title = "Cek Darah Rutin & Nilai-Nilai MC",
-                    desc = "Pemeriksaan Hemoglobin, Hematokrit, Eritrosit, Leukosit total, Trombosit, nilai-nilai MC",
-                    buttonColor = Color(0xFF40B5A7),
-                    onPesanClick = { onNavigateToDetail(3) }
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(popularScrollState)
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    PopularTestCard(
+                        title = "Cek Hematologi (Lengkap)",
+                        desc = "Total, LDL, HDL & Trigliserida",
+                        buttonColor = Color(0xFFF86066),
+                        onPesanClick = { onNavigateToDetail(1) }
+                    )
+                    PopularTestCard(
+                        title = "Hitung Jenis Leukosit",
+                        desc = "Pemeriksaan Basofil, Eosinofil, Neutrofil, Limfosit, dan Monosit.",
+                        buttonColor = Color(0xFFFFA92A),
+                        onPesanClick = { onNavigateToDetail(2) }
+                    )
+                    PopularTestCard(
+                        title = "Cek Darah Rutin & Nilai-Nilai MC",
+                        desc = "Pemeriksaan Hemoglobin, Hematokrit, Eritrosit, Leukosit total, Trombosit, nilai-nilai MC",
+                        buttonColor = Color(0xFF40B5A7),
+                        onPesanClick = { onNavigateToDetail(3) }
+                    )
+                }
+
+                // Pagination / scrollbar hint — minimal track + 3 dots
+                val maxVal = popularScrollState.maxValue
+                val progress = if (maxVal > 0) popularScrollState.value.toFloat() / maxVal else 0f
+                val activeDot = when {
+                    progress < 0.33f -> 0
+                    progress < 0.66f -> 1
+                    else -> 2
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(3) { idx ->
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 3.dp)
+                                .size(if (idx == activeDot) 8.dp else 6.dp)
+                                .clip(CircleShape)
+                                .background(if (idx == activeDot) Color(0xFF3CB7A6) else Color(0xFFD1D5DB))
+                        )
+                    }
+                }
             }
         }
     }

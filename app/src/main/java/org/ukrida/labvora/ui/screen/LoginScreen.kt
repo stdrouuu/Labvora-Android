@@ -329,17 +329,19 @@ fun LoginScreen(
                         )
                     }
 
-                    // Button Masuk
+                    // Button Masuk — abu-abu saat ditekan / loading biar keliatan sudah keklik
                     val loginInteractionSource = remember { MutableInteractionSource() }
                     val isLoginPressed by loginInteractionSource.collectIsPressedAsState()
+                    val isLoggingIn = viewModel.isLoggingIn.value
                     val loginBtnColor by animateColorAsState(
-                        targetValue = if (isLoginPressed) Color(0xFF9CA3AF) else Color(0xFF3CAEA3),
+                        targetValue = if (isLoggingIn || isLoginPressed) Color(0xFF9CA3AF) else Color(0xFF3CAEA3),
                         animationSpec = tween(durationMillis = 100),
                         label = "loginBtnColor"
                     )
 
                     Button(
                         onClick = {
+                            if (isLoggingIn) return@Button
                             if (username.isBlank() || password.isBlank()) {
                                 errorMessage = "Username dan Password harus diisi!"
                             } else {
@@ -347,6 +349,7 @@ fun LoginScreen(
                                 viewModel.login(username, password)
                             }
                         },
+                        enabled = !isLoggingIn,
                         interactionSource = loginInteractionSource,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = loginBtnColor,
@@ -364,11 +367,19 @@ fun LoginScreen(
                             .height(54.dp)
                             .shadow(0.2.dp, shape = RoundedCornerShape(16.dp))
                     ) {
-                        Text(
-                            text = "Masuk",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        if (isLoggingIn) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(22.dp),
+                                color = Color.White,
+                                strokeWidth = 2.5.dp
+                            )
+                        } else {
+                            Text(
+                                text = "Masuk",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
