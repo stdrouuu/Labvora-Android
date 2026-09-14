@@ -89,21 +89,57 @@ class AdminViewModel : ViewModel() {
         }
     }
 
-    private fun convertBookingDateToISO(dateStr: String): String {
-        // Format: "20 Jun 2026"
-        val parts = dateStr.split(" ")
-        if (parts.size == 3) {
-            val day = parts[0].padStart(2, '0')
-            val monthStr = parts[1]
-            val year = parts[2]
+    private fun monthNameToNumber(token: String): String? {
+        return when (token.lowercase().trim()) {
+            "januari", "jan", "january" -> "01"
+            "februari", "feb", "february" -> "02"
+            "maret", "mar", "march" -> "03"
+            "april", "apr" -> "04"
+            "mei", "may" -> "05"
+            "juni", "jun", "june" -> "06"
+            "juli", "jul", "july" -> "07"
+            "agustus", "agu", "aug", "august" -> "08"
+            "september", "sep", "sept" -> "09"
+            "oktober", "okt", "oct", "october" -> "10"
+            "november", "nov" -> "11"
+            "desember", "des", "dec", "december" -> "12"
+            else -> null
+        }
+    }
 
-            val months = mapOf(
-                "Jan" to "01", "Feb" to "02", "Mar" to "03", "Apr" to "04",
-                "Mei" to "05", "Jun" to "06", "Jul" to "07", "Agu" to "08",
-                "Sep" to "09", "Okt" to "10", "Nov" to "11", "Des" to "12"
-            )
-            val month = months[monthStr] ?: "01"
-            return "$year-$month-$day"
+    private fun convertBookingDateToISO(dateStr: String): String {
+        if (dateStr.isBlank()) return ""
+        // Buang prefix hari ("Sabtu, 27 Juni 2026") & suffix jam
+        var s = dateStr.trim()
+        if (s.contains(",")) s = s.substringAfterLast(",").trim()
+        s = s.split("·")[0].trim()
+        if (s.contains("Jam", ignoreCase = true)) s = s.substringBefore("Jam").trim()
+        s = s.replace(",", " ").replace("\\s+".toRegex(), " ").trim()
+        if (s.isEmpty()) return ""
+
+        // ISO langsung: 2026-06-28 / 2026/06/28
+        val isoMatch = Regex("(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})").find(s)
+        if (s.matches(Regex("\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}.*"))) {
+            isoMatch?.let {
+                val y = it.groupValues[1]
+                val m = it.groupValues[2].padStart(2, '0')
+                val d = it.groupValues[3].padStart(2, '0')
+                return "$y-$m-$d"
+            }
+        }
+
+        // DMY: "27 Juni 2026" / "27 Jun 2026" / "27-06-2026" / "27/06/2026"
+        val parts = s.split(" ", "-", "/").map { it.trim() }.filter { it.isNotEmpty() }
+        if (parts.size >= 3) {
+            val day = parts[0].filter { it.isDigit() }.padStart(2, '0')
+            val monthToken = parts[1]
+            val year = parts[2].filter { it.isDigit() }
+            if (day.length == 2 && year.length == 4) {
+                val monthNum = monthToken.filter { it.isDigit() }.padStart(2, '0')
+                    .takeIf { it.length == 2 && it != "00" }
+                    ?: monthNameToNumber(monthToken)
+                if (monthNum != null) return "$year-$monthNum-$day"
+            }
         }
         return ""
     }

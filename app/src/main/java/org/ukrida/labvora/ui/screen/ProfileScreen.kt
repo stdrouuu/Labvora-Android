@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -66,6 +67,7 @@ fun ProfileScreen(
     var showHelpDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm2 by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     val isDeletingAccount = viewModel.isDeletingAccount.value
     var deleteErrorMsg by remember { mutableStateOf<String?>(null) }
 
@@ -332,9 +334,9 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Keluar Akun Button
+                // Keluar Akun Button — double verify tema merah
                 Button(
-                    onClick = onLogout,
+                    onClick = { showLogoutDialog = true },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFF86066),
                         contentColor = Color.White
@@ -727,6 +729,81 @@ fun ProfileScreen(
             shape = RoundedCornerShape(24.dp),
             containerColor = Color.White
         )
+    }
+
+    // ================= logout confirm dialog (double verify, tema merah, compact) =================
+    if (showLogoutDialog) {
+        Dialog(onDismissRequest = { showLogoutDialog = false }) {
+            Surface(
+                shape = RoundedCornerShape(28.dp),
+                color = Color.White,
+                tonalElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(Color(0xFFFEE2E2), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = null,
+                            tint = Color(0xFFF86066),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Keluar Akun?",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        color = Color(0xFF1F2937),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Apakah Anda yakin ingin keluar dari akun ini?",
+                        fontSize = 12.sp,
+                        color = Color(0xFF6B7280),
+                        lineHeight = 17.sp,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = { showLogoutDialog = false },
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                        ) {
+                            Text("Batal", fontSize = 13.sp, color = Color(0xFF6B7280), fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Button(
+                            onClick = {
+                                showLogoutDialog = false
+                                onLogout()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFF86066),
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
+                        ) {
+                            Text("Ya, Keluar", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // ================= delete account dialog – step 1 =================

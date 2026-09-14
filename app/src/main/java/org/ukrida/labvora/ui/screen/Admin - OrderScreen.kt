@@ -20,8 +20,11 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.launch
 import org.ukrida.labvora.data.model.AdminBooking
 import org.ukrida.labvora.viewmodel.AdminViewModel
@@ -50,6 +54,7 @@ fun AdminOrderScreen(
     LaunchedEffect(Unit) {
         viewModel.getBookings()
     }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val filteredBookings = viewModel.filterBookings()
 
@@ -88,7 +93,7 @@ fun AdminOrderScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onLogout) {
+                    IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
                             contentDescription = "Logout",
@@ -181,41 +186,45 @@ fun AdminOrderScreen(
                         }
                     )
 
-                    // Date Picker Box
+                    // Date Picker Box — seluruh area bisa diklik untuk buka kalender
                     val dateInteractionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                    androidx.compose.foundation.text.BasicTextField(
-                        value = viewModel.searchDate.value,
-                        onValueChange = {},
-                        readOnly = true,
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { datePickerDialog.show() },
-                        interactionSource = dateInteractionSource,
-                        singleLine = true,
-                        decorationBox = @Composable { innerTextField ->
-                            OutlinedTextFieldDefaults.DecorationBox(
-                                value = viewModel.searchDate.value,
-                                innerTextField = innerTextField,
-                                enabled = true,
-                                singleLine = true,
-                                visualTransformation = androidx.compose.ui.text.input.VisualTransformation.None,
-                                interactionSource = dateInteractionSource,
-                                placeholder = { Text("Pilih tanggal...", fontSize = 12.sp, color = Color.Gray) },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.CalendarToday,
-                                        contentDescription = "Kalender",
-                                        tint = Color.Gray,
-                                        modifier = Modifier.clickable { datePickerDialog.show() }
-                                    )
-                                },
-                                trailingIcon = {
-                                    if (viewModel.searchDate.value.isNotEmpty()) {
-                                        IconButton(onClick = { viewModel.searchDate.value = "" }) {
-                                            Icon(Icons.Default.Clear, contentDescription = "Hapus", tint = Color.Gray)
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { datePickerDialog.show() }
+                    ) {
+                        androidx.compose.foundation.text.BasicTextField(
+                            value = viewModel.searchDate.value,
+                            onValueChange = {},
+                            readOnly = true,
+                            enabled = false,
+                            modifier = Modifier.fillMaxWidth(),
+                            interactionSource = dateInteractionSource,
+                            singleLine = true,
+                            decorationBox = @Composable { innerTextField ->
+                                OutlinedTextFieldDefaults.DecorationBox(
+                                    value = viewModel.searchDate.value,
+                                    innerTextField = innerTextField,
+                                    enabled = false,
+                                    singleLine = true,
+                                    visualTransformation = androidx.compose.ui.text.input.VisualTransformation.None,
+                                    interactionSource = dateInteractionSource,
+                                    placeholder = { Text("Pilih tanggal...", fontSize = 12.sp, color = Color.Gray) },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.CalendarToday,
+                                            contentDescription = "Kalender",
+                                            tint = Color.Gray
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        if (viewModel.searchDate.value.isNotEmpty()) {
+                                            IconButton(onClick = { viewModel.searchDate.value = "" }) {
+                                                Icon(Icons.Default.Clear, contentDescription = "Hapus", tint = Color.Gray)
+                                            }
                                         }
-                                    }
-                                },
+                                    },
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = Color(0xFF42B5A7),
                                     unfocusedBorderColor = Color(0xFFE2E8F0),
@@ -245,6 +254,7 @@ fun AdminOrderScreen(
                             )
                         }
                     )
+                    }
                 }
             }
 
@@ -338,6 +348,80 @@ fun AdminOrderScreen(
                             booking = booking,
                             onDetailClick = { viewModel.selectBookingForDetail(booking) }
                         )
+                    }
+                }
+            }
+        }
+    }
+
+    if (showLogoutDialog) {
+        Dialog(onDismissRequest = { showLogoutDialog = false }) {
+            Surface(
+                shape = RoundedCornerShape(28.dp),
+                color = Color.White,
+                tonalElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(Color(0xFFFEE2E2), androidx.compose.foundation.shape.CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = null,
+                            tint = Color(0xFFF86066),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Keluar Akun?",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        color = Color(0xFF1F2937),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Apakah Anda yakin ingin keluar dari akun admin ini?",
+                        fontSize = 12.sp,
+                        color = Color(0xFF6B7280),
+                        lineHeight = 17.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = { showLogoutDialog = false },
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                        ) {
+                            Text("Batal", fontSize = 13.sp, color = Color(0xFF6B7280), fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Button(
+                            onClick = {
+                                showLogoutDialog = false
+                                onLogout()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFF86066),
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
+                        ) {
+                            Text("Ya, Keluar", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }

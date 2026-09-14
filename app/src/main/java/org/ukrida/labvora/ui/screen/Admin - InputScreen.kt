@@ -45,6 +45,7 @@ fun AdminInputScreen(
     LaunchedEffect(Unit) {
         viewModel.getBookings()
     }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     val needInput = viewModel.bookings.value.filter { it.status == "Sedang diuji" && it.resultStatus == "Menunggu Hasil" }
 
     Scaffold(
@@ -67,7 +68,7 @@ fun AdminInputScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onLogout) {
+                    IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
                             contentDescription = "Logout",
@@ -241,6 +242,80 @@ fun AdminInputScreen(
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
+                    }
+                }
+            }
+        }
+    }
+
+    if (showLogoutDialog) {
+        Dialog(onDismissRequest = { showLogoutDialog = false }) {
+            Surface(
+                shape = RoundedCornerShape(28.dp),
+                color = Color.White,
+                tonalElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(Color(0xFFFEE2E2), androidx.compose.foundation.shape.CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = null,
+                            tint = Color(0xFFF86066),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Keluar Akun?",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
+                        color = Color(0xFF1F2937),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Apakah Anda yakin ingin keluar dari akun admin ini?",
+                        fontSize = 12.sp,
+                        color = Color(0xFF6B7280),
+                        lineHeight = 17.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = { showLogoutDialog = false },
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                        ) {
+                            Text("Batal", fontSize = 13.sp, color = Color(0xFF6B7280), fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Button(
+                            onClick = {
+                                showLogoutDialog = false
+                                onLogout()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFF86066),
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
+                        ) {
+                            Text("Ya, Keluar", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }

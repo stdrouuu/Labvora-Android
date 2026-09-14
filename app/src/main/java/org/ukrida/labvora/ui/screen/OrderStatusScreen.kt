@@ -91,13 +91,11 @@ fun OrderStatusScreen(
     }
 
     val filteredSorted = remember(allOrders, selectedStatus, selectedDate, isNewestFirst) {
+        val selectedIso = selectedDate?.let { normalizeDateToISO(it) }
         val filtered = allOrders.filter { item ->
             val statusMatch = selectedStatus == "Semua" || item.status.equals(selectedStatus, ignoreCase = true)
-            val dateMatch = if (selectedDate == null) true else {
-                val selMillis = parseDateMillis(selectedDate!!)
-                val itemMillis = parseDateMillis(item.date)
-                if (selMillis != 0L && itemMillis != 0L) selMillis == itemMillis
-                else item.date.trim() == selectedDate!!.trim()
+            val dateMatch = if (selectedIso == null) true else {
+                normalizeDateToISO(item.date) == selectedIso
             }
             statusMatch && dateMatch
         }
@@ -424,8 +422,75 @@ fun OrderStatusScreen(
     }
 }
 
+private fun monthNameToNumber(token: String): String? {
+    return when (token.lowercase(Locale("id", "ID")).trim()) {
+        "januari", "jan", "january" -> "01"
+        "februari", "feb", "february" -> "02"
+        "maret", "mar", "march" -> "03"
+        "april", "apr" -> "04"
+        "mei", "may" -> "05"
+        "juni", "jun", "june" -> "06"
+        "juli", "jul", "july" -> "07"
+        "agustus", "agu", "aug", "august" -> "08"
+        "september", "sep", "sept" -> "09"
+        "oktober", "okt", "oct", "october" -> "10"
+        "november", "nov" -> "11"
+        "desember", "des", "dec", "december" -> "12"
+        else -> null
+    }
+}
+
+// Normalisasi semua format tanggal API ke ISO yyyy-MM-dd untuk perbandingan hari.
+// Mendukung: "2026-06-26", "26/06/2026", "26 Juni 2026", "26 Jun 2026",
+// "Jumat, 26 Juni 2026", "Jumat, 26 Jun 2026", plus varian EN.
+private fun normalizeDateToISO(raw: String): String? {
+    if (raw.isBlank()) return null
+    // Buang prefix nama hari ("Jumat, ...") dan suffix jam ("... · Jam 14:00", "... Jam ...")
+    var s = raw.trim()
+    if (s.contains(",")) s = s.substringAfterLast(",").trim()
+    s = s.split("·")[0].trim()
+    if (s.contains("Jam", ignoreCase = true)) s = s.substringBefore("Jam").trim()
+    s = s.replace(",", " ").replace("\\s+".toRegex(), " ").trim()
+    if (s.isEmpty()) return null
+
+    // 1) ISO: yyyy-MM-dd atau yyyy/MM/dd (+ optional time di belakang)
+    val isoMatch = Regex("(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})").find(s)
+    if (s.matches(Regex("\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}.*"))) {
+        isoMatch?.let {
+            val y = it.groupValues[1]
+            val m = it.groupValues[2].padStart(2, '0')
+            val d = it.groupValues[3].padStart(2, '0')
+            return "$y-$m-$d"
+        }
+    }
+
+    // 2) DMY: dd-MM-yyyy / dd/MM/yyyy / dd MMM yyyy / dd MMMM yyyy
+    val parts = s.split(" ", "-", "/").map { it.trim() }.filter { it.isNotEmpty() }
+    if (parts.size >= 3) {
+        val day = parts[0].filter { it.isDigit() }.padStart(2, '0')
+        val monthToken = parts[1]
+        val year = parts[2].filter { it.isDigit() }
+        if (day.length == 2 && year.length == 4) {
+            val monthNum = monthToken.filter { it.isDigit() }.padStart(2, '0').takeIf { it.length == 2 && it != "00" }
+                ?: monthNameToNumber(monthToken)
+            if (monthNum != null) return "$year-$monthNum-$day"
+        }
+    }
+    return null
+}
+
 private fun parseDateMillis(dateStr: String): Long {
     if (dateStr.isBlank()) return 0L
+    val iso = normalizeDateToISO(dateStr)
+    if (iso != null) {
+        try {
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            sdf.isLenient = false
+            val d = sdf.parse(iso)
+            if (d != null) return d.time
+        } catch (_: Exception) {}
+    }
+    // Fallback: coba pola lama untuk format tak terduga
     val trimmed = dateStr.trim()
     val patterns = listOf(
         "yyyy-MM-dd",

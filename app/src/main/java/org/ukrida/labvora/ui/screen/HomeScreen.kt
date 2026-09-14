@@ -317,15 +317,18 @@ fun HomeScreen(
             )
         }
 
-        // Promo Banners Row
+        // Promo Banners Row — fixed card size + 2-dot pagination
+        val promoScrollState = rememberScrollState()
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
+                    .horizontalScroll(promoScrollState)
                     .padding(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -334,7 +337,7 @@ fun HomeScreen(
                     title = buildAnnotatedString {
                         append("Cek Darah di ")
                         withStyle(style = SpanStyle(color = Color(0xFF3CB7A6), fontWeight = FontWeight.ExtraBold)) {
-                            append("\nKlinik Cinta Kasih!")
+                            append("Klinik Cinta Kasih!")
                         }
                     },
                     discountText = "Hemat 15%",
@@ -355,6 +358,27 @@ fun HomeScreen(
                     minTransaction = "*Termasuk Konsultasi Dokter",
                     imageRes = R.drawable.lansia
                 )
+            }
+
+            // Pagination dots — 2 dots karena iklan cuma 2
+            val promoMax = promoScrollState.maxValue
+            val promoProgress = if (promoMax > 0) promoScrollState.value.toFloat() / promoMax else 0f
+            val promoActiveDot = if (promoProgress < 0.5f) 0 else 1
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(2) { idx ->
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 3.dp)
+                            .size(if (idx == promoActiveDot) 8.dp else 6.dp)
+                            .clip(CircleShape)
+                            .background(if (idx == promoActiveDot) Color(0xFF3CB7A6) else Color(0xFFD1D5DB))
+                    )
+                }
             }
         }
 
@@ -539,10 +563,10 @@ fun PromoBannerCard(
 ) {
     Card(
         modifier = Modifier
-            .width(280.dp)
-            .heightIn(min = 160.dp),
+            .width(300.dp)
+            .height(152.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
     ) {
         Row(
@@ -550,50 +574,62 @@ fun PromoBannerCard(
         ) {
             Column(
                 modifier = Modifier
-                    .weight(7f)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .weight(1.35f)
+                    .fillMaxHeight()
+                    .padding(start = 14.dp, top = 12.dp, bottom = 12.dp, end = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     text = title,
-                    fontSize = 15.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF374151),
+                    color = Color(0xFF1F2937),
                     lineHeight = 18.sp,
-                    maxLines = 3,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFF9FAFB), RoundedCornerShape(16.dp))
-                        .border(1.dp, Color(0xFFF3F4F6), RoundedCornerShape(16.dp))
-                        .padding(8.dp)
+                        .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp))
+                        .border(1.dp, Color(0xFFF3F4F6), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 8.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = discountText,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFFF86066)
+                        color = Color(0xFFF86066),
+                        lineHeight = 14.sp,
+                        maxLines = 1
                     )
                     Text(
                         text = discountDesc,
                         fontSize = 10.sp,
-                        color = Color(0xFF6B7280)
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF4B5563),
+                        lineHeight = 13.sp,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                     Text(
                         text = minTransaction,
                         fontSize = 8.sp,
                         color = Color(0xFF9CA3AF),
                         fontWeight = FontWeight.SemiBold,
+                        lineHeight = 10.sp,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
             }
             Box(
                 modifier = Modifier
-                    .weight(5f)
-                    .fillMaxHeight(),
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
