@@ -16,6 +16,9 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
     // State untuk notifikasi toast berhasil registrasi
     var showRegisterSuccessToast = mutableStateOf(false)
 
+    // State untuk toast "profil diperbarui" — hoisted agar survive popBackStack ke Profile
+    var showProfileUpdatedToast = mutableStateOf(false)
+
     // State untuk proses hapus akun: null = idle, true = loading, false = selesai
     var isDeletingAccount = mutableStateOf(false)
     var deleteAccountError = mutableStateOf<String?>(null)

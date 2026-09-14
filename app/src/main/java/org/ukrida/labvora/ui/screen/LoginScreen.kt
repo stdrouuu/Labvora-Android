@@ -364,7 +364,7 @@ fun LoginScreen(
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(54.dp)
+                            .heightIn(min = 54.dp)
                             .shadow(0.2.dp, shape = RoundedCornerShape(16.dp))
                     ) {
                         if (isLoggingIn) {

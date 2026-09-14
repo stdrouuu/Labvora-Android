@@ -39,24 +39,32 @@ fun BottomNav(navController: NavHostController, role: String) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
 
-    Box(
+    // ponytail: border = divider 1.dp di atas bar (ganti shadow blur yg bikin blok abu2),
+    // background putih cover inset nav agar tak ada celah transparan
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(1.dp, clip = false)
             .background(Color.White)
-            .height(80.dp)
+            .navigationBarsPadding()
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color(0xFFE5E7EB))
+        )
         Row(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .height(80.dp)
                 .padding(horizontal = 24.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             items.forEach { screen ->
                 val selected = when (screen) {
-                    Screen.Home -> currentRoute == Screen.Home.route || currentRoute == "history" || currentRoute.startsWith("result")
-                    Screen.ListTest -> currentRoute == Screen.ListTest.route || currentRoute.startsWith("detailtest") || currentRoute == "bookschedule" || currentRoute == "orderreview"
+                    Screen.Home -> currentRoute == Screen.Home.route || currentRoute == "history" || currentRoute.startsWith("result") || currentRoute == "orderstatus"
+                    Screen.ListTest -> currentRoute == Screen.ListTest.route || currentRoute.startsWith("detailtest") || currentRoute == "bookschedule" || currentRoute == "orderreview" || currentRoute == "cart"
                     Screen.User -> currentRoute == Screen.User.route || currentRoute == "profileedit"
                 }
                 val interactionSource = remember { MutableInteractionSource() }
@@ -153,4 +161,3 @@ fun BottomNav(navController: NavHostController, role: String) {
         }
     }
 }
-

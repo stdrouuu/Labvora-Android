@@ -1,6 +1,8 @@
 // View: Layar Profil pengguna untuk melihat informasi akun dan riwayat aktivitas
 package org.ukrida.labvora.ui.screen
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +27,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -33,6 +36,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import org.ukrida.labvora.R
+import org.ukrida.labvora.util.resolvePhotoModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 import org.ukrida.labvora.viewmodel.BookingViewModel
 import org.ukrida.labvora.viewmodel.HistoryViewModel
@@ -51,7 +55,11 @@ fun ProfileScreen(
 ) {
     val currentUser = viewModel.currentUser.value
     val userName = currentUser?.name ?: ""
-    val userPhoto: Any = currentUser?.photo ?: R.drawable.images
+    // ponytail: key = id + photo agar Coil ganti gambar saat pindah akun
+    val userPhoto = remember(currentUser?.id, currentUser?.photo) {
+        resolvePhotoModel(currentUser?.photo) ?: R.drawable.images
+    }
+    val context = LocalContext.current
 
     var showImagePreview by remember { mutableStateOf(false) }
     var showHistoryDialog by remember { mutableStateOf(false) }
@@ -61,11 +69,20 @@ fun ProfileScreen(
     val isDeletingAccount = viewModel.isDeletingAccount.value
     var deleteErrorMsg by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(currentUser?.id) {
         currentUser?.id?.let { userId ->
             if (userId > 0) {
                 historyViewModel.getHistoryList(userId)
             }
+        }
+    }
+
+    // ponytail: toast hoisted dari Edit agar tetap tampil setelah popBackStack
+    val showUpdatedToast = viewModel.showProfileUpdatedToast.value
+    LaunchedEffect(showUpdatedToast) {
+        if (showUpdatedToast) {
+            kotlinx.coroutines.delay(3000)
+            viewModel.showProfileUpdatedToast.value = false
         }
     }
 
@@ -102,7 +119,9 @@ fun ProfileScreen(
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp)
-                    .padding(bottom = 32.dp),
+                    .padding(bottom = 32.dp)
+                    .widthIn(max = 640.dp)
+                    .align(Alignment.CenterHorizontally),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Profile Avatar Card
@@ -161,7 +180,10 @@ fun ProfileScreen(
                                 text = userName,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF1F2937)
+                                color = Color(0xFF1F2937),
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
@@ -278,7 +300,8 @@ fun ProfileScreen(
                             icon = Icons.Default.VerifiedUser,
                             title = "Kebijakan Privasi",
                             onClick = {
-                                navController.navigate("privacypolicy")
+                                // ponytail: external URL replaces in-app screen, no route needed
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://labvora.ifukrida.net/")))
                             }
                         )
                     }
@@ -319,7 +342,7 @@ fun ProfileScreen(
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
+                        .heightIn(min = 54.dp)
                         .shadow(4.dp, shape = RoundedCornerShape(16.dp), ambientColor = Color(0xFFF86066))
                 ) {
                     Row(
@@ -355,7 +378,7 @@ fun ProfileScreen(
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
+                        .heightIn(min = 54.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -394,12 +417,51 @@ fun ProfileScreen(
         }
     }
 
+    // Toast sukses edit — ponytail: di bawah top nav, overlay konten
+    if (showUpdatedToast) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(top = 72.dp, start = 20.dp, end = 20.dp),
+            contentAlignment = Alignment.TopCenter
+        ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 640.dp)
+                .background(Color(0xFF3CB7A6), RoundedCornerShape(12.dp))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Profil berhasil diperbarui!",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        }
+    }
+
     // ================= bigger preview dialog =================
     if (showImagePreview) {
         Dialog(onDismissRequest = { showImagePreview = false }) {
             Surface(
                 modifier = Modifier
-                    .size(320.dp),
+                    .fillMaxWidth(0.85f)
+                    .aspectRatio(1f),
                 shape = RoundedCornerShape(28.dp),
                 color = Color.White,
                 tonalElevation = 8.dp
@@ -902,6 +964,8 @@ fun ProfileMenuItem(
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF374151),
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
 

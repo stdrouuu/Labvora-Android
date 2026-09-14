@@ -52,6 +52,9 @@ fun ResultScreen(
     val test = bookingViewModel.allTests.find { it.id == testId } ?: bookingViewModel.allTests[0]
 
     Scaffold(
+        // ponytail: inset 0 agar tak dobel dgn BottomNav outer (sumber strip abu)
+        contentWindowInsets = WindowInsets(0.dp),
+        containerColor = Color(0xFFFAFAFA),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -179,7 +182,7 @@ fun ResultScreen(
                             .horizontalScroll(rememberScrollState())
                             .padding(bottom = 12.dp)
                     ) {
-                        Column(modifier = Modifier.width(660.dp)) {
+                        Column(modifier = Modifier.widthIn(min = 560.dp, max = 720.dp)) {
                             // Table Header Row
                             Row(
                                 modifier = Modifier
@@ -284,7 +287,7 @@ fun ResultScreen(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
+                        .heightIn(min = 54.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Download,

@@ -3,7 +3,6 @@ package org.ukrida.labvora.ui.screen
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -52,8 +51,10 @@ import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import org.ukrida.labvora.R
 import org.ukrida.labvora.data.model.User
+import org.ukrida.labvora.util.copyUriToProfileFile
+import org.ukrida.labvora.util.createProfilePhotoFile
+import org.ukrida.labvora.util.resolvePhotoModel
 import org.ukrida.labvora.viewmodel.UserViewModel
-import java.io.File
 import android.app.DatePickerDialog
 import java.util.Calendar
 import androidx.compose.material.icons.filled.Email
@@ -94,16 +95,27 @@ fun RegisterScreen(
     var imageUriString by rememberSaveable {
         mutableStateOf<String?>(null)
     }
-    val imageUri = remember(imageUriString) {
-        imageUriString?.let { Uri.parse(it) }
+    // ponytail: path file unik per foto; resolve ke File agar Coil reload per akun
+    val imageModel = remember(imageUriString) { resolvePhotoModel(imageUriString) }
+
+    // URI kamera FileProvider (tidak survive process death, buat ulang tiap launch)
+    var pendingCameraPath by remember { mutableStateOf<String?>(null) }
+
+    // ================= KAMERA =================
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        // ponytail: path baru dipakai hanya jika jepretan sukses; batal = kembali ke foto lama
+        if (success) {
+            pendingCameraPath?.let { imageUriString = it }
+        }
+        pendingCameraPath = null
     }
 
-    // URI sementara kamera
-    var cameraImageUriString by rememberSaveable {
-        mutableStateOf<String?>(null)
-    }
-    var cameraImageUri = remember(cameraImageUriString) {
-        cameraImageUriString?.let { Uri.parse(it) }
+    fun launchCamera() {
+        val file = createProfilePhotoFile(context)
+        pendingCameraPath = file.absolutePath
+        cameraLauncher.launch(FileProvider.getUriForFile(context, "${context.packageName}.provider", file))
     }
 
     // ================= GALERI =================
@@ -111,16 +123,8 @@ fun RegisterScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let {
-            imageUriString = it.toString()
-        }
-    }
-
-    // ================= KAMERA =================
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) {
-            imageUriString = cameraImageUriString
+            // ponytail: salin ke internal agar foto ikut akun, bukan Uri galeri sementara
+            imageUriString = copyUriToProfileFile(context, it) ?: it.toString()
         }
     }
 
@@ -128,19 +132,7 @@ fun RegisterScreen(
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) {
-            val file = File(
-                context.cacheDir,
-                "camera_photo.jpg"
-            )
-            val uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.provider",
-                file
-            )
-            cameraImageUriString = uri.toString()
-            cameraLauncher.launch(uri)
-        }
+        if (granted) launchCamera()
     }
 
     Box(
@@ -242,9 +234,9 @@ fun RegisterScreen(
                             .border(2.dp, Color.White, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (imageUri != null) {
+                        if (imageModel != null) {
                             AsyncImage(
-                                model = imageUri,
+                                model = imageModel,
                                 contentDescription = "Foto Profil",
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
@@ -284,27 +276,10 @@ fun RegisterScreen(
 
                         OutlinedButton(
                             onClick = {
-                                when {
-                                    ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.CAMERA
-                                    ) == PackageManager.PERMISSION_GRANTED -> {
-                                        val file = File(
-                                            context.cacheDir,
-                                            "camera_photo.jpg"
-                                        )
-                                        cameraImageUri = FileProvider.getUriForFile(
-                                            context,
-                                            "${context.packageName}.provider",
-                                            file
-                                        )
-                                        cameraImageUri?.let {
-                                            cameraLauncher.launch(it)
-                                        }
-                                    }
-                                    else -> {
-                                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                                    }
+                                if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                    launchCamera()
+                                } else {
+                                    permissionLauncher.launch(Manifest.permission.CAMERA)
                                 }
                             },
                             shape = RoundedCornerShape(20.dp),
@@ -767,7 +742,7 @@ fun RegisterScreen(
                             username = username,
                             password = password,
                             role = role,
-                            photo = imageUri?.toString(),
+                            photo = imageUriString,
                             email = email,
                             phone = phone,
                             gender = if (gender == "Laki-laki") "L" else "P",
@@ -787,7 +762,7 @@ fun RegisterScreen(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp)
+                    .heightIn(min = 54.dp)
                     .shadow(0.2.dp, shape = RoundedCornerShape(16.dp))
             ) {
                 Text(

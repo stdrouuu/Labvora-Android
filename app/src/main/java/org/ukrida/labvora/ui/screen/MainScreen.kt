@@ -1,5 +1,7 @@
 package org.ukrida.labvora.ui.screen
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -43,13 +45,14 @@ fun MainScreen(
 ) {
     val innerNavController = rememberNavController()
     val context = LocalContext.current
-    val bookingViewModel = remember { BookingViewModel() }
-    val historyViewModel = remember { HistoryViewModel() }
-    val resultViewModel = remember { ResultViewModel() }
-    val cartViewModel = remember { CartViewModel() }
+    val userId = userViewModel.currentUser.value?.id ?: 0
+    // ponytail: instance per akun agar cart/history tak bocor saat ganti user
+    val bookingViewModel = remember(userId) { BookingViewModel() }
+    val historyViewModel = remember(userId) { HistoryViewModel() }
+    val resultViewModel = remember(userId) { ResultViewModel() }
+    val cartViewModel = remember(userId) { CartViewModel() }
     val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
 
-    val userId = userViewModel.currentUser.value?.id ?: 0
     LaunchedEffect(userId) {
         if (userId > 0) {
             cartViewModel.initCartForUser(context, userId)
@@ -64,6 +67,7 @@ fun MainScreen(
     val showTopBar = currentRoute == "home" || currentRoute == "listtest"
 
     Scaffold(
+        containerColor = Color.White,
         // ================= TOP BAR =================
         topBar = {
             if (showTopBar) {
@@ -130,8 +134,10 @@ fun MainScreen(
         },
 
         // ================= BOTTOM NAV =================
+        // ponytail: hide di layar dgn bottom bar sendiri (history, result, cart,
+        // orderstatus, profileedit) sesuai commit lama; privacypolicy route sudah dihapus
         bottomBar = {
-            if (currentRoute != "history" && !currentRoute.startsWith("result") && currentRoute != "cart" && currentRoute != "orderstatus" && currentRoute != "privacypolicy") {
+            if (currentRoute != "history" && !currentRoute.startsWith("result") && currentRoute != "cart" && currentRoute != "orderstatus" && currentRoute != "profileedit") {
                 BottomNav(innerNavController, role)
             }
         }
@@ -141,6 +147,12 @@ fun MainScreen(
         NavHost(
             navController = innerNavController,
             startDestination = "home",
+            // ponytail: tanpa animasi slide — bottomBar hide-nya instan,
+            // kalau layar pakai slide, ikon hilang duluan & layar nyusul (kelihatan glitch)
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
             modifier = Modifier.padding(
                 top = if (showTopBar) padding.calculateTopPadding() else 0.dp,
                 bottom = padding.calculateBottomPadding()
@@ -252,14 +264,6 @@ fun MainScreen(
                 ProfileEditScreen(
                     viewModel = userViewModel,
                     navController = innerNavController
-                )
-            }
-
-            composable("privacypolicy") {
-                PrivacyPolicyScreen(
-                    onBack = {
-                        innerNavController.popBackStack()
-                    }
                 )
             }
 

@@ -110,6 +110,9 @@ fun OrderStatusScreen(
     val statusTabs = listOf("Semua", "Menunggu", "Dikonfirmasi", "Sedang diuji", "Selesai", "Dibatalkan")
 
     Scaffold(
+        // ponytail: inset 0 agar tak dobel dgn BottomNav outer (sumber strip abu)
+        contentWindowInsets = WindowInsets(0.dp),
+        containerColor = Color(0xFFF9FAFB),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {

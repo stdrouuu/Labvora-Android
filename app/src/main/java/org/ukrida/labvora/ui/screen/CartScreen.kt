@@ -77,6 +77,9 @@ fun CartScreen(
     }
 
     Scaffold(
+        // ponytail: inset 0 agar tak dobel dgn BottomNav outer (sumber strip abu)
+        contentWindowInsets = WindowInsets(0.dp),
+        containerColor = Color(0xFFF9FAFB),
         topBar = {
             TopAppBar(
                 title = {
@@ -109,10 +112,15 @@ fun CartScreen(
         },
         bottomBar = {
             if (cartItems.isNotEmpty()) {
-                Surface(
-                    color = Color.White,
-                    shadowElevation = 8.dp
-                ) {
+                // ponytail: divider flat sama kayak BottomNav, tanpa navigationBarsPadding
+                // (inset ditangani BottomNav outer) agar tak ada strip abu dobel di atas nav
+                Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(Color(0xFFE5E7EB))
+                    )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

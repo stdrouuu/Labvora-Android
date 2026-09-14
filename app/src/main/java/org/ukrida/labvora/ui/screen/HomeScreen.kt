@@ -86,6 +86,12 @@ fun HomeScreen(
             .verticalScroll(rememberScrollState())
             .padding(bottom = 24.dp)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 840.dp)
+                .align(Alignment.CenterHorizontally)
+        ) {
         // Welcome Header Section
         Column(
             modifier = Modifier
@@ -107,7 +113,10 @@ fun HomeScreen(
                     text = userName,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF3CB7A6)
+                    color = Color(0xFF3CB7A6),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Box(
@@ -458,6 +467,7 @@ fun HomeScreen(
                 }
             }
         }
+        }
     }
 }
 
@@ -529,8 +539,8 @@ fun PromoBannerCard(
 ) {
     Card(
         modifier = Modifier
-            .width(320.dp)
-            .height(160.dp),
+            .width(280.dp)
+            .heightIn(min = 160.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
@@ -549,7 +559,9 @@ fun PromoBannerCard(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF374151),
-                    lineHeight = 18.sp
+                    lineHeight = 18.sp,
+                    maxLines = 3,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 Column(
                     modifier = Modifier
@@ -623,7 +635,9 @@ fun PopularTestCard(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1F2937),
-                    lineHeight = 16.sp
+                    lineHeight = 16.sp,
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
@@ -631,7 +645,9 @@ fun PopularTestCard(
                     fontSize = 10.sp,
                     color = Color(0xFF9CA3AF),
                     fontWeight = FontWeight.Medium,
-                    lineHeight = 13.sp
+                    lineHeight = 13.sp,
+                    maxLines = 3,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
             }
             Button(

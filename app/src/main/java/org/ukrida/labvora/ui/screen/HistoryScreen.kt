@@ -12,7 +12,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -23,6 +25,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.ukrida.labvora.viewmodel.HistoryViewModel
@@ -56,6 +59,9 @@ fun HistoryScreen(
     }
 
     Scaffold(
+        // ponytail: inset 0 agar tak dobel dgn BottomNav outer (sumber strip abu)
+        contentWindowInsets = WindowInsets(0.dp),
+        containerColor = Color(0xFFFAFAFA),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -193,13 +199,16 @@ fun HistoryScreen(
                         .fillMaxWidth()
                         .weight(1f),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     items(filteredList) { item ->
-                        HistoryCard(
-                            item = item,
-                            onClick = { onNavigateToResult(item.id, item.testId, item.date) }
-                        )
+                        Box(modifier = Modifier.fillMaxWidth().widthIn(max = 640.dp)) {
+                            HistoryCard(
+                                item = item,
+                                onClick = { onNavigateToResult(item.id, item.testId, item.date) }
+                            )
+                        }
                     }
                 }
             }
@@ -299,36 +308,62 @@ fun HistoryCard(
                     }
                 }
 
-                Column {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(
                         text = item.title,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1F2937),
-                        lineHeight = 18.sp
+                        lineHeight = 18.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = item.date,
-                            fontSize = 11.sp,
-                            color = Color(0xFF6B7280),
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = "|",
-                            fontSize = 11.sp,
-                            color = Color(0xFFE5E7EB)
-                        )
-                        Text(
-                            text = item.clinicName,
-                            fontSize = 11.sp,
-                            color = Color(0xFF4B5563),
-                            fontWeight = FontWeight.Bold
-                        )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    // ponytail: tanggal-klinik grup rapat 2.dp, judul renggang 6.dp
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarMonth,
+                                contentDescription = null,
+                                tint = Color(0xFF9CA3AF),
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = item.date,
+                                fontSize = 11.sp,
+                                color = Color(0xFF6B7280),
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = Color(0xFF3CB7A6),
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = item.clinicName,
+                                fontSize = 11.sp,
+                                color = Color(0xFF4B5563),
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }

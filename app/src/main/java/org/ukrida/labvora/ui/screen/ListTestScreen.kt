@@ -34,11 +34,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.ukrida.labvora.viewmodel.BookingViewModel
@@ -260,7 +262,7 @@ fun LabTestCardItem(test: LabTest, onPesanClick: () -> Unit) {
         shape = RoundedCornerShape(32.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(32.dp))) {
             // Background decoration shape at top right
             Box(
                 modifier = Modifier
@@ -315,7 +317,9 @@ fun LabTestCardItem(test: LabTest, onPesanClick: () -> Unit) {
                     text = test.title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1F2937)
+                    color = Color(0xFF1F2937),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -326,6 +330,8 @@ fun LabTestCardItem(test: LabTest, onPesanClick: () -> Unit) {
                     fontStyle = FontStyle.Italic,
                     color = Color(0xFF6B7280),
                     lineHeight = 15.sp,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(end = 8.dp)
                 )
 
@@ -336,7 +342,7 @@ fun LabTestCardItem(test: LabTest, onPesanClick: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Harga",
                             fontSize = 10.sp,
@@ -347,7 +353,9 @@ fun LabTestCardItem(test: LabTest, onPesanClick: () -> Unit) {
                             text = test.price,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF1F2937)
+                            color = Color(0xFF1F2937),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                     Button(

@@ -92,6 +92,9 @@ fun OrderReviewScreen(
     }
 
     Scaffold(
+        // ponytail: inset 0 agar tak dobel dgn BottomNav outer (sumber strip abu)
+        contentWindowInsets = WindowInsets(0.dp),
+        containerColor = Color(0xFFFAFAFA),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {

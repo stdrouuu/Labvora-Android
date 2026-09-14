@@ -58,6 +58,9 @@ if (test == null) {
 }
 
     Scaffold(
+        // ponytail: inset 0 agar tak dobel dgn BottomNav outer (sumber strip abu)
+        contentWindowInsets = WindowInsets(0.dp),
+        containerColor = Color(0xFFFAFAFA),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -147,13 +150,13 @@ if (test == null) {
             ) {
                 Text(
                     text = test.title,
-                    fontSize = 26.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF1F2937),
-                    lineHeight = 32.sp
+                    lineHeight = 28.sp
                 )
                 Row(
-                    modifier = Modifier.padding(top = 16.dp),
+                    modifier = Modifier.padding(top = 16.dp).fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Box(
@@ -185,12 +188,12 @@ if (test == null) {
                 }
             }
 
-            // Main Image
+            // Main Image — ponytail: rasio tetap agar tak gepeng di tablet
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
-                    .height(176.dp)
+                    .aspectRatio(16f / 9f)
                     .clip(RoundedCornerShape(20.dp))
             ) {
                 Image(
@@ -386,7 +389,7 @@ if (test == null) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
-                    .height(54.dp)
+                    .heightIn(min = 54.dp)
             ) {
                 Text(
                     text = "Cek Jadwal Pemeriksaan",
