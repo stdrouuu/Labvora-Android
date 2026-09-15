@@ -9,6 +9,11 @@ import java.util.concurrent.TimeUnit
 object RetrofitInstance {
     const val BASE_URL = "https://labvora.ifukrida.net/Labvora-API/routes/"
 
+    // Base foto profil server — diturunkan dari BASE_URL agar ikut
+    // pindah saat ganti ke lokal (Laragon) atau produksi.
+    val uploadsBaseUrl: String
+        get() = BASE_URL.substringBefore("/routes/") + "/uploads/"
+
     // Timeout 30s agar tahan hosting shared (cPanel) yang kadang slow,
     // tanpa ini default 10s -> ANR/crash saat closed testing.
     private val okHttpClient: OkHttpClient by lazy {

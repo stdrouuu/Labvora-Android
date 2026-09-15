@@ -5,6 +5,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import org.ukrida.labvora.data.model.AdminBooking
 import org.ukrida.labvora.data.model.TestHistoryItem
+import org.ukrida.labvora.data.model.UploadPhotoResponse
 import org.ukrida.labvora.data.model.User
 import retrofit2.Response
 import retrofit2.http.Body
@@ -28,10 +29,19 @@ interface ApiService {
         @Body user: User
     ): Response<Unit>
 
-    @GET(value = "delete_user.php")
+    // Hapus akun via POST (GET dilarang di server agar tak ke-trigger cache/crawler)
+    @POST(value = "delete_user.php")
     suspend fun deleteUser(
-        @Query("id") id: Int
+        @Body request: Map<String, Int>
     ): Response<Unit>
+
+    // Upload foto profil (multipart) -> { success, filename, url }
+    @Multipart
+    @POST(value = "upload_photo.php")
+    suspend fun uploadProfilePhoto(
+        @Part photo: MultipartBody.Part,
+        @Part("user_id") userId: RequestBody?
+    ): UploadPhotoResponse
 
     // Login
     @POST(value = "login.php")

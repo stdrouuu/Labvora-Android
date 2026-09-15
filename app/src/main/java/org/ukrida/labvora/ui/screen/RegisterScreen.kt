@@ -57,6 +57,7 @@ import org.ukrida.labvora.data.model.User
 import org.ukrida.labvora.util.copyUriToProfileFile
 import org.ukrida.labvora.util.createProfilePhotoFile
 import org.ukrida.labvora.util.deleteProfilePhotoFile
+import org.ukrida.labvora.util.photoPathToUploadFile
 import org.ukrida.labvora.util.resolvePhotoModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 import android.app.DatePickerDialog
@@ -86,6 +87,7 @@ fun RegisterScreen(
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var isTermsChecked by rememberSaveable { mutableStateOf(false) }
     var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var isSubmitting by rememberSaveable { mutableStateOf(false) }
     var email by rememberSaveable { mutableStateOf("") }
     var phone by rememberSaveable { mutableStateOf("") }
     var gender by rememberSaveable { mutableStateOf("Laki-laki") }
@@ -786,8 +788,9 @@ fun RegisterScreen(
                         errorMessage = "Format alamat email tidak valid!"
                     } else if (!isTermsChecked) {
                         errorMessage = "Anda harus menyetujui Kebijakan Privasi!"
-                    } else {
+                    } else if (!isSubmitting) {
                         errorMessage = null
+                        isSubmitting = true
                         val user = User(
                             id = 0,
                             name = name,
@@ -801,12 +804,25 @@ fun RegisterScreen(
                             dob = dob,
                             address = address
                         )
-                        viewModel.showRegisterSuccessToast.value = true
-                        viewModel.insert(user)
-                        onRegisterSuccess() // Redirect back to login page
+                        // Upload foto dulu bila file lokal -> DB simpan filename
+                        // server agar sync antar device.
+                        viewModel.registerWithPhoto(
+                            user,
+                            photoPathToUploadFile(imageUriString),
+                            onSuccess = {
+                                isSubmitting = false
+                                viewModel.showRegisterSuccessToast.value = true
+                                onRegisterSuccess() // Redirect back to login page
+                            },
+                            onError = { err ->
+                                isSubmitting = false
+                                errorMessage = err
+                            }
+                        )
                     }
                 },
                 interactionSource = registerInteractionSource,
+                enabled = !isSubmitting,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isRegisterPressed) Color(0xFF9CA3AF) else Color(0xFF39B3A3),
                     contentColor = Color.White
@@ -818,7 +834,7 @@ fun RegisterScreen(
                     .shadow(0.2.dp, shape = RoundedCornerShape(16.dp))
             ) {
                 Text(
-                    text = "Daftar",
+                    text = if (isSubmitting) "Mendaftar..." else "Daftar",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp

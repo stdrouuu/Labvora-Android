@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import org.ukrida.labvora.data.model.User
 import org.ukrida.labvora.data.repository.UserRepository
+import java.io.File
 
 class UserViewModel(private val repo: UserRepository) : ViewModel() {
 
@@ -143,6 +144,79 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 onError("Gagal memperbarui profil. Periksa koneksi internet Anda.")
+            }
+        }
+    }
+
+    // Update profil dengan upload foto dulu bila photoFile adalah file lokal.
+    // DB hanya menyimpan filename server -> foto sync antar device.
+    fun updateProfileWithPhoto(
+        user: User,
+        photoFile: File?,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                var finalUser = user
+                if (photoFile != null) {
+                    val up = repo.uploadProfilePhoto(photoFile, user.id)
+                    if (!up.success || up.filename.isNullOrBlank()) {
+                        throw Exception(up.message ?: "Upload foto gagal")
+                    }
+                    finalUser = user.copy(photo = up.filename)
+                }
+                val response = repo.update(finalUser)
+                if (!response.isSuccessful) {
+                    throw Exception("Server menolak update (${response.code()})")
+                }
+                currentUser.value = finalUser
+                val list = users.value.map { if (it.id == finalUser.id || it.username == finalUser.username) finalUser else it }
+                users.value = list
+                onSuccess()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                onError("Gagal menyimpan foto/profil. Periksa koneksi internet Anda.")
+            }
+        }
+    }
+
+    // Registrasi dengan upload foto dulu bila ada file lokal.
+    fun registerWithPhoto(
+        user: User,
+        photoFile: File?,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            isRegistering.value = true
+            registerError.value = null
+            try {
+                var finalUser = user
+                if (photoFile != null) {
+                    val up = repo.uploadProfilePhoto(photoFile, null)
+                    if (!up.success || up.filename.isNullOrBlank()) {
+                        throw Exception(up.message ?: "Upload foto gagal")
+                    }
+                    finalUser = user.copy(photo = up.filename)
+                }
+                val response = repo.insert(finalUser)
+                if (!response.isSuccessful) {
+                    throw Exception("Server menolak registrasi (${response.code()})")
+                }
+                val list = users.value.toMutableList()
+                if (!list.any { it.username == finalUser.username }) {
+                    list.add(finalUser)
+                }
+                users.value = list
+                isRegistering.value = false
+                onSuccess()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                isRegistering.value = false
+                val errMsg = "Registrasi gagal. Periksa koneksi internet Anda."
+                registerError.value = errMsg
+                onError(errMsg)
             }
         }
     }

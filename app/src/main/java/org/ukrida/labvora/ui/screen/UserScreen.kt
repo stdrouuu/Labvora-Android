@@ -20,7 +20,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import org.ukrida.labvora.R
 import org.ukrida.labvora.data.model.User
+import org.ukrida.labvora.util.resolvePhotoModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -153,7 +155,8 @@ fun UserItem(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profile Image / Placeholder
+            // Profile Image / Placeholder (filename server -> URL uploads/)
+            val avatarModel = remember(user.id, user.photo) { resolvePhotoModel(user.photo) }
             Box(
                 modifier = Modifier
                     .size(75.dp)
@@ -161,12 +164,14 @@ fun UserItem(
                     .background(Color.LightGray),
                 contentAlignment = Alignment.Center
             ) {
-                if (!user.photo.isNullOrEmpty()) {
+                if (avatarModel != null) {
                     AsyncImage(
-                        model = user.photo,
+                        model = avatarModel,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        error = androidx.compose.ui.res.painterResource(id = R.drawable.images),
+                        fallback = androidx.compose.ui.res.painterResource(id = R.drawable.images)
                     )
                 } else {
                     Icon(

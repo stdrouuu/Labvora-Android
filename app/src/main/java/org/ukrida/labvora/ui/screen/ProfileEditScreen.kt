@@ -45,6 +45,7 @@ import org.ukrida.labvora.R
 import org.ukrida.labvora.util.copyUriToProfileFile
 import org.ukrida.labvora.util.createProfilePhotoFile
 import org.ukrida.labvora.util.deleteProfilePhotoFile
+import org.ukrida.labvora.util.photoPathToUploadFile
 import org.ukrida.labvora.util.resolvePhotoModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 import androidx.navigation.NavHostController
@@ -83,6 +84,7 @@ fun ProfileEditScreen(
     var pendingCameraPath by remember { mutableStateOf<String?>(null) }
 
     var isSaving by rememberSaveable { mutableStateOf(false) }
+    var saveError by remember { mutableStateOf<String?>(null) }
     var showDeletePhotoConfirm by remember { mutableStateOf(false) }
     // ponytail: satu requester per field — field yang fokus auto-scroll ke viewport
     // di atas tombol Simpan (tombol sudah naik via imePadding di bottomBar).
@@ -146,24 +148,33 @@ fun ProfileEditScreen(
                 isSaving = isSaving,
                 onSave = {
                     if (currentUser != null && !isSaving) {
-                        coroutineScope.launch {
-                            isSaving = true
-                            delay(500)
-                            val updatedUser = currentUser.copy(
-                                name = name,
-                                email = email,
-                                phone = phone,
-                                gender = if (gender == "Perempuan") "P" else "L",
-                                dob = dob,
-                                address = address,
-                                photo = photoPath
-                            )
-                            viewModel.update(updatedUser)
-                            isSaving = false
-                            // ponytail: toast hoisted ke VM agar tetap tampil setelah balik ke Profil
-                            viewModel.showProfileUpdatedToast.value = true
-                            navController.popBackStack()
-                        }
+                        isSaving = true
+                        saveError = null
+                        val updatedUser = currentUser.copy(
+                            name = name,
+                            email = email,
+                            phone = phone,
+                            gender = if (gender == "Perempuan") "P" else "L",
+                            dob = dob,
+                            address = address,
+                            photo = photoPath
+                        )
+                        // Upload dulu bila foto masih file lokal -> DB simpan
+                        // filename server agar sync antar device.
+                        viewModel.updateProfileWithPhoto(
+                            updatedUser,
+                            photoPathToUploadFile(photoPath),
+                            onSuccess = {
+                                isSaving = false
+                                // ponytail: toast hoisted ke VM agar tetap tampil setelah balik ke Profil
+                                viewModel.showProfileUpdatedToast.value = true
+                                navController.popBackStack()
+                            },
+                            onError = { err ->
+                                isSaving = false
+                                saveError = err
+                            }
+                        )
                     }
                 }
             )
@@ -286,6 +297,20 @@ fun ProfileEditScreen(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
+
+                // Error upload/simpan (mis. internet putus saat upload foto)
+                saveError?.let { err ->
+                    Text(
+                        text = err,
+                        color = Color(0xFFF86066),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
 
                 // Inputs Forms
                 Column(
