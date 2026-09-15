@@ -4,6 +4,7 @@ package org.ukrida.labvora.ui.screen
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,6 +43,7 @@ import org.ukrida.labvora.util.resolvePhotoModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 import org.ukrida.labvora.viewmodel.BookingViewModel
 import org.ukrida.labvora.viewmodel.HistoryViewModel
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,9 +59,15 @@ fun ProfileScreen(
 ) {
     val currentUser = viewModel.currentUser.value
     val userName = currentUser?.name ?: ""
-    // ponytail: key = id + photo agar Coil ganti gambar saat pindah akun
-    val userPhoto = remember(currentUser?.id, currentUser?.photo) {
-        resolvePhotoModel(currentUser?.photo) ?: R.drawable.images
+    // ponytail: key = id + photo agar Coil ganti gambar saat pindah akun;
+    // hanya file lokal / URL valid yang dipakai, path basi dari server -> default
+    val userPhoto: Any = remember(currentUser?.id, currentUser?.photo) {
+        when (val m = resolvePhotoModel(currentUser?.photo)) {
+            null -> R.drawable.images
+            is File -> m
+            is String -> if (m.startsWith("http") || m.startsWith("content://") || m.startsWith("file://")) m else R.drawable.images
+            else -> R.drawable.images
+        }
     }
     val context = LocalContext.current
 
@@ -68,6 +77,14 @@ fun ProfileScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm2 by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+    // ponytail: version name dibaca dari PackageManager, fallback ke BuildConfig manual
+    val appVersion = remember(context) {
+        try {
+            @Suppress("DEPRECATION")
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.0.5"
+        } catch (_: Exception) { "1.0.5" }
+    }
     val isDeletingAccount = viewModel.isDeletingAccount.value
     var deleteErrorMsg by remember { mutableStateOf<String?>(null) }
 
@@ -171,7 +188,9 @@ fun ProfileScreen(
                                     model = userPhoto,
                                     contentDescription = "Avatar",
                                     modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
+                                    contentScale = ContentScale.Crop,
+                                    error = painterResource(id = R.drawable.images),
+                                    fallback = painterResource(id = R.drawable.images)
                                 )
                             }
 
@@ -301,9 +320,27 @@ fun ProfileScreen(
                         ProfileMenuItem(
                             icon = Icons.Default.VerifiedUser,
                             title = "Kebijakan Privasi",
+                            isExternal = true,
                             onClick = {
                                 // ponytail: external URL replaces in-app screen, no route needed
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://labvora.ifukrida.net/")))
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://labvora.ifukrida.net/privacy-policy.html")))
+                            }
+                        )
+                        HorizontalDivider(color = Color(0xFFF9FAFB), thickness = 1.dp)
+                        ProfileMenuItem(
+                            icon = Icons.Default.HelpOutline,
+                            title = "Pertanyaan yang Sering Ditanyakan",
+                            onClick = {
+                                navController.navigate("faq")
+                            }
+                        )
+                        HorizontalDivider(color = Color(0xFFF9FAFB), thickness = 1.dp)
+                        ProfileMenuItem(
+                            icon = Icons.Default.Info,
+                            title = "Tentang Aplikasi",
+                            subtitle = "Versi $appVersion",
+                            onClick = {
+                                showAboutDialog = true
                             }
                         )
                     }
@@ -473,7 +510,9 @@ fun ProfileScreen(
                         model = userPhoto,
                         contentDescription = "Avatar Preview",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        error = painterResource(id = R.drawable.images),
+                        fallback = painterResource(id = R.drawable.images)
                     )
                     IconButton(
                         onClick = { showImagePreview = false },
@@ -667,7 +706,7 @@ fun ProfileScreen(
                                                 }
                                             }
                                         }
-                                        
+
                                         val hasReferral = !order.referralPhoto.isNullOrEmpty() && order.referralPhoto != "null"
                                         if (hasReferral) {
                                             Spacer(modifier = Modifier.height(4.dp))
@@ -729,6 +768,90 @@ fun ProfileScreen(
             shape = RoundedCornerShape(24.dp),
             containerColor = Color.White
         )
+    }
+
+    // ================= tentang aplikasi dialog =================
+    if (showAboutDialog) {
+        Dialog(onDismissRequest = { showAboutDialog = false }) {
+            Surface(
+                shape = RoundedCornerShape(28.dp),
+                color = Color.White,
+                tonalElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFE6F7F5)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.appicon),
+                            contentDescription = "Logo Labvora",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Labvora",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF1F2937)
+                    )
+                    Text(
+                        text = "Versi $appVersion",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF3CB7A6),
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Aplikasi pemesanan tes laboratorium untuk mempermudah pendaftaran, penjadwalan, dan pemantauan hasil pemeriksaan kesehatan Anda.",
+                        fontSize = 12.sp,
+                        color = Color(0xFF6B7280),
+                        lineHeight = 18.sp,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    HorizontalDivider(color = Color(0xFFF3F4F6), thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Dibuat oleh",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF9CA3AF),
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = "Tim Labvora • Universitas Kristen Krida Wacana (UKRIDA)",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF374151),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { showAboutDialog = false },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF3CB7A6),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 46.dp)
+                    ) {
+                        Text("Tutup", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
     }
 
     // ================= logout confirm dialog (double verify, tema merah, compact) =================
@@ -1006,9 +1129,11 @@ fun SectionTitle(text: String) {
 fun ProfileMenuItem(
     icon: ImageVector,
     title: String,
+    subtitle: String? = null,
     badgeText: String? = null,
     badgeColor: Color = Color.Transparent,
     badgeTextColor: Color = Color.Transparent,
+    isExternal: Boolean = false,
     onClick: () -> Unit
 ) {
     Row(
@@ -1035,16 +1160,28 @@ fun ProfileMenuItem(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Title
-        Text(
-            text = title,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF374151),
-            maxLines = 1,
-            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
+        // Title (+ optional subtitle, e.g. version under Tentang Aplikasi)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF374151),
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF9CA3AF),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+            }
+        }
 
         // Badge if present
         if (badgeText != null) {
@@ -1061,6 +1198,14 @@ fun ProfileMenuItem(
                     letterSpacing = 0.5.sp
                 )
             }
+        } else if (isExternal) {
+            // Outside-link icon beside external items (e.g. Kebijakan Privasi)
+            Icon(
+                imageVector = Icons.Default.OpenInNew,
+                contentDescription = null,
+                tint = Color(0xFF9CA3AF),
+                modifier = Modifier.size(16.dp)
+            )
         } else {
             // Chevron arrow
             Icon(

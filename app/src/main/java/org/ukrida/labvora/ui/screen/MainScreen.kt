@@ -135,9 +135,9 @@ fun MainScreen(
 
         // ================= BOTTOM NAV =================
         // ponytail: hide di layar dgn bottom bar sendiri (history, result, cart,
-        // orderstatus, profileedit) sesuai commit lama; privacypolicy route sudah dihapus
+        // orderstatus, profileedit, faq) sesuai commit lama; privacypolicy route sudah dihapus
         bottomBar = {
-            if (currentRoute != "history" && !currentRoute.startsWith("result") && currentRoute != "cart" && currentRoute != "orderstatus" && currentRoute != "profileedit") {
+            if (currentRoute != "history" && !currentRoute.startsWith("result") && currentRoute != "cart" && currentRoute != "orderstatus" && currentRoute != "profileedit" && currentRoute != "faq") {
                 BottomNav(innerNavController, role)
             }
         }
@@ -264,6 +264,14 @@ fun MainScreen(
                 ProfileEditScreen(
                     viewModel = userViewModel,
                     navController = innerNavController
+                )
+            }
+
+            composable("faq") {
+                FaqScreen(
+                    onBack = {
+                        innerNavController.popBackStack()
+                    }
                 )
             }
 

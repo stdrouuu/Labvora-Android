@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -75,6 +77,8 @@ fun HomeScreen(
     val userName = currentUser?.name ?: "Guest"
 
     var searchQuery by remember { mutableStateOf("") }
+    // ponytail: promo terpilih untuk modal detail — semua banner wajib ada output
+    var selectedPromoIndex by remember { mutableStateOf<Int?>(null) }
 
     val lastHistoryItem = historyViewModel.historyList.value.firstOrNull()
     val lastTestDate = lastHistoryItem?.date ?: "-"
@@ -343,7 +347,8 @@ fun HomeScreen(
                     discountText = "Hemat 15%",
                     discountDesc = "Semua Skrining Lab Lengkap",
                     minTransaction = "*Min. Transaksi Rp1.5Jt",
-                    imageRes = R.drawable.kesehatan
+                    imageRes = R.drawable.kesehatan,
+                    onClick = { selectedPromoIndex = 0 }
                 )
                 // Banner 2
                 PromoBannerCard(
@@ -356,7 +361,8 @@ fun HomeScreen(
                     discountText = "Hemat 20%",
                     discountDesc = "Paket Pemeriksaan Lansia",
                     minTransaction = "*Termasuk Konsultasi Dokter",
-                    imageRes = R.drawable.lansia
+                    imageRes = R.drawable.lansia,
+                    onClick = { selectedPromoIndex = 1 }
                 )
             }
 
@@ -493,6 +499,40 @@ fun HomeScreen(
         }
         }
     }
+
+    // ================= promo detail modal — semua iklan wajib ada output =================
+    if (selectedPromoIndex != null) {
+        val isFirst = selectedPromoIndex == 0
+        AlertDialog(
+            onDismissRequest = { selectedPromoIndex = null },
+            title = {
+                Text(
+                    text = if (isFirst) "Promo Skrining Lab Lengkap" else "Promo Paket Lansia",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF1F2937)
+                )
+            },
+            text = {
+                Text(
+                    text = if (isFirst)
+                        "Hemat 15% untuk semua skrining lab lengkap di Klinik Cinta Kasih.\n\n• Min. transaksi Rp1.500.000\n• Berlaku untuk semua cabang Klinik Cinta Kasih\n• Tunjukkan halaman ini saat pembayaran di klinik"
+                    else
+                        "Hemat 20% untuk paket pemeriksaan lansia Cinta Care.\n\n• Termasuk konsultasi dokter\n• Berlaku untuk semua cabang Klinik Cinta Kasih\n• Tunjukkan halaman ini saat pembayaran di klinik",
+                    fontSize = 13.sp,
+                    color = Color(0xFF4B5563),
+                    lineHeight = 19.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { selectedPromoIndex = null }) {
+                    Text(text = "Tutup", color = Color(0xFF3CB7A6), fontWeight = FontWeight.Bold)
+                }
+            },
+            shape = RoundedCornerShape(24.dp),
+            containerColor = Color.White
+        )
+    }
 }
 
 @Composable
@@ -559,12 +599,14 @@ fun PromoBannerCard(
     discountText: String,
     discountDesc: String,
     minTransaction: String,
-    imageRes: Int
+    imageRes: Int,
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
             .width(300.dp)
-            .height(152.dp),
+            .height(152.dp)
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)

@@ -15,8 +15,8 @@ android {
         applicationId = "org.ukrida.labvora"
         minSdk = 27
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.0.4"
+        versionCode = 11
+        versionName = "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -60,6 +60,8 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
     // Converter Gson (untuk JSON parsing)
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    // OkHttp (timeout 30s untuk hosting shared, eksplisit agar tidak ikut versi transitif)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     //Navigasi
     implementation(libs.androidx.navigation.compose)
     // Kotlin Coroutines

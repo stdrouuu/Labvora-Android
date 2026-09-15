@@ -28,3 +28,17 @@ fun resolvePhotoModel(photo: String?): Any? {
     if (f.exists()) return f
     return photo
 }
+
+// ponytail: hapus file foto lokal lama agar cuma satu file tersimpan (tidak menumpuk).
+// Hanya menghapus file di dalam folder profile_photos demi keamanan.
+fun deleteProfilePhotoFile(path: String?) {
+    if (path.isNullOrBlank()) return
+    try {
+        val f = File(path)
+        if (f.exists() && f.parentFile?.name == "profile_photos") {
+            f.delete()
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}

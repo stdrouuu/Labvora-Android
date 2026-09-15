@@ -1,9 +1,6 @@
 // View: Layar Login untuk autentikasi pengguna
 package org.ukrida.labvora.ui.screen
 
-// username: brandon or lebron
-// password: 123456 or 123456
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween

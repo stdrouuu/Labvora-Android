@@ -64,6 +64,7 @@ fun ListTestScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showHelpDialog by remember { mutableStateOf(false) }
+    var showPromoDialog by remember { mutableStateOf(false) }
 
     val allTests = remember {
         listOf(
@@ -216,7 +217,7 @@ fun ListTestScreen(
             }
 
             // Promo banner card (static)
-            PromoSpecialBanner()
+            PromoSpecialBanner(onClick = { showPromoDialog = true })
 
             // Need help card (static - Disembunyikan sementara)
             // NeedHelpCard(onContactClick = { showHelpDialog = true })
@@ -244,6 +245,35 @@ fun ListTestScreen(
             confirmButton = {
                 TextButton(onClick = { showHelpDialog = false }) {
                     Text(text = "Oke", color = Color(0xFF3CB7A6), fontWeight = FontWeight.Bold)
+                }
+            },
+            shape = RoundedCornerShape(24.dp),
+            containerColor = Color.White
+        )
+    }
+
+    if (showPromoDialog) {
+        AlertDialog(
+            onDismissRequest = { showPromoDialog = false },
+            title = {
+                Text(
+                    text = "Kesehatan Adalah Harta",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF1F2937)
+                )
+            },
+            text = {
+                Text(
+                    text = "\"Kesehatan yang baik bukanlah sesuatu yang dapat kita beli. Namun, sesuatu yang dapat menjadi tabungan yang sangat berharga.\"\n\n~ Anne Wilson Schaef\n\nJaga kesehatan Anda dengan rutin melakukan pemeriksaan lab di Labvora.",
+                    fontSize = 13.sp,
+                    color = Color(0xFF4B5563),
+                    lineHeight = 19.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showPromoDialog = false }) {
+                    Text(text = "Tutup", color = Color(0xFF3CB7A6), fontWeight = FontWeight.Bold)
                 }
             },
             shape = RoundedCornerShape(24.dp),
@@ -378,10 +408,11 @@ fun LabTestCardItem(test: LabTest, onPesanClick: () -> Unit) {
 }
 
 @Composable
-fun PromoSpecialBanner() {
+fun PromoSpecialBanner(onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color(0xFF3EB3A2)),
         shape = RoundedCornerShape(32.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)

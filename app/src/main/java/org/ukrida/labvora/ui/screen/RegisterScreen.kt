@@ -21,6 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AlternateEmail
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Photo
@@ -43,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,6 +56,7 @@ import org.ukrida.labvora.R
 import org.ukrida.labvora.data.model.User
 import org.ukrida.labvora.util.copyUriToProfileFile
 import org.ukrida.labvora.util.createProfilePhotoFile
+import org.ukrida.labvora.util.deleteProfilePhotoFile
 import org.ukrida.labvora.util.resolvePhotoModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 import android.app.DatePickerDialog
@@ -105,9 +109,13 @@ fun RegisterScreen(
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        // ponytail: path baru dipakai hanya jika jepretan sukses; batal = kembali ke foto lama
+        // ponytail: path baru dipakai hanya jika jepretan sukses; batal = kembali ke foto lama.
+        // File lama dihapus agar cuma satu foto tersimpan.
         if (success) {
-            pendingCameraPath?.let { imageUriString = it }
+            pendingCameraPath?.let {
+                if (it != imageUriString) deleteProfilePhotoFile(imageUriString)
+                imageUriString = it
+            }
         }
         pendingCameraPath = null
     }
@@ -123,8 +131,11 @@ fun RegisterScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let {
-            // ponytail: salin ke internal agar foto ikut akun, bukan Uri galeri sementara
-            imageUriString = copyUriToProfileFile(context, it) ?: it.toString()
+            // ponytail: salin ke internal agar foto ikut akun, bukan Uri galeri sementara.
+            // File lama dihapus agar cuma satu foto tersimpan.
+            val newPath = copyUriToProfileFile(context, it) ?: it.toString()
+            if (newPath != imageUriString) deleteProfilePhotoFile(imageUriString)
+            imageUriString = newPath
         }
     }
 
@@ -239,7 +250,9 @@ fun RegisterScreen(
                                 model = imageModel,
                                 contentDescription = "Foto Profil",
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Crop,
+                                error = painterResource(id = R.drawable.images),
+                                fallback = painterResource(id = R.drawable.images)
                             )
                         } else {
                             Image(
@@ -295,6 +308,29 @@ fun RegisterScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text("Kamera", fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        }
+
+                        // Hapus foto — kembali ke default images.jpg
+                        if (imageModel != null) {
+                            OutlinedButton(
+                                onClick = {
+                                    deleteProfilePhotoFile(imageUriString)
+                                    imageUriString = null
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                                border = BorderStroke(1.dp, Color(0xFFFECACA)),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFF86066)),
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DeleteOutline,
+                                    contentDescription = "Hapus foto",
+                                    tint = Color(0xFFF86066),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Hapus", fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                            }
                         }
                     }
 
@@ -653,7 +689,7 @@ fun RegisterScreen(
 
                         // Terms and Conditions checkbox
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                            verticalAlignment = Alignment.Top,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
@@ -666,36 +702,52 @@ fun RegisterScreen(
                                     uncheckedColor = Color(0xFF9CA3AF)
                                 )
                             )
-                            val termsText = remember {
-                                buildAnnotatedString {
-                                    append("Saya menyetujui ")
-                                    pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
-                                    withStyle(style = SpanStyle(color = Color(0xFF3CAEA3), fontWeight = FontWeight.Bold)) {
-                                        append("Kebijakan Privasi")
-                                    }
-                                    pop()
-                                    append(" Labvora.")
-                                }
-                            }
-
-                            androidx.compose.foundation.text.ClickableText(
-                                text = termsText,
-                                style = androidx.compose.ui.text.TextStyle(
-                                    fontSize = 12.sp,
-                                    color = Color(0xFF6B7280)
-                                ),
+                            // ponytail: link underline + chevron dalam satu Row agar tak
+                            // terpisah saat wrap; 1 unit FlowRow = selalu rapi
+                            @OptIn(ExperimentalLayoutApi::class)
+                            FlowRow(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(start = 4.dp),
-                                onClick = { offset ->
-                                    termsText.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
-                                        .firstOrNull()?.let {
-                                            onNavigatePrivacyPolicy()
-                                        } ?: run {
-                                            isTermsChecked = !isTermsChecked
-                                        }
+                                    .padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) { isTermsChecked = !isTermsChecked },
+                                horizontalArrangement = Arrangement.Start,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = "Saya menyetujui ",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF6B7280)
+                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) { onNavigatePrivacyPolicy() }
+                                ) {
+                                    Text(
+                                        text = "Kebijakan Privasi",
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF3CAEA3),
+                                        fontWeight = FontWeight.Bold,
+                                        textDecoration = TextDecoration.Underline
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = "Buka Kebijakan Privasi",
+                                        tint = Color(0xFF3CAEA3),
+                                        modifier = Modifier.size(14.dp)
+                                    )
                                 }
-                            )
+                                Text(
+                                    text = " Labvora.",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF6B7280)
+                                )
+                            }
                         }
                     }
                 }

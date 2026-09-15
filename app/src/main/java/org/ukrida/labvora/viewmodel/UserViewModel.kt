@@ -29,8 +29,11 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
             isDeletingAccount.value = true
             deleteAccountError.value = null
             try {
-                repo.delete(userId)
-                // Hapus dari daftar lokal
+                val response = repo.delete(userId)
+                if (!response.isSuccessful) {
+                    throw Exception("Server menolak hapus akun (${response.code()})")
+                }
+                // Hapus dari daftar lokal — hanya jika server sukses
                 users.value = users.value.filter { it.id != userId }
                 // Bersihkan sesi pengguna
                 currentUser.value = null
@@ -86,44 +89,82 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
         }
     }
 
-    fun insert(user: User) {
+    // State register — dipakai jika UI ingin menunggu hasil server
+    var isRegistering = mutableStateOf(false)
+    var registerError = mutableStateOf<String?>(null)
+
+    fun insert(
+        user: User,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
         viewModelScope.launch {
+            isRegistering.value = true
+            registerError.value = null
             try {
-                repo.insert(user)
+                val response = repo.insert(user)
+                if (!response.isSuccessful) {
+                    throw Exception("Server menolak registrasi (${response.code()})")
+                }
+                // Tambah ke list lokal HANYA jika server sukses.
+                // Sebelumnya user ditambah walau DB gagal -> login bypass offline.
+                val list = users.value.toMutableList()
+                if (!list.any { it.username == user.username }) {
+                    list.add(user)
+                }
+                users.value = list
+                isRegistering.value = false
+                onSuccess()
             } catch (e: Exception) {
                 e.printStackTrace()
+                isRegistering.value = false
+                val errMsg = "Registrasi gagal. Periksa koneksi internet Anda."
+                registerError.value = errMsg
+                onError(errMsg)
             }
-            // Add user to local list so they can log in even if database write fails/is offline
-            val list = users.value.toMutableList()
-            if (!list.any { it.username == user.username }) {
-                list.add(user)
-            }
-            users.value = list
         }
     }
 
-    fun update(user: User) {
+    fun update(
+        user: User,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
         viewModelScope.launch {
             try {
-                repo.update(user)
+                val response = repo.update(user)
+                if (!response.isSuccessful) {
+                    throw Exception("Server menolak update (${response.code()})")
+                }
+                currentUser.value = user
+                val list = users.value.map { if (it.id == user.id || it.username == user.username) user else it }
+                users.value = list
+                onSuccess()
             } catch (e: Exception) {
                 e.printStackTrace()
+                onError("Gagal memperbarui profil. Periksa koneksi internet Anda.")
             }
-            currentUser.value = user
-            val list = users.value.map { if (it.id == user.id || it.username == user.username) user else it }
-            users.value = list
         }
     }
 
-    fun delete(id: Int) {
+    fun delete(
+        id: Int,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
         viewModelScope.launch {
             try {
-                repo.delete(id)
+                val response = repo.delete(id)
+                if (!response.isSuccessful) {
+                    throw Exception("Server menolak hapus (${response.code()})")
+                }
+                val list = users.value.filter { it.id != id }
+                users.value = list
+                onSuccess()
             } catch (e: Exception) {
                 e.printStackTrace()
+                onError("Gagal menghapus. Periksa koneksi internet Anda.")
             }
-            val list = users.value.filter { it.id != id }
-            users.value = list
         }
     }
 }
