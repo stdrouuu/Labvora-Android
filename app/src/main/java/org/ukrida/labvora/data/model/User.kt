@@ -11,5 +11,6 @@ data class User(
     val phone: String? = null,
     val gender: String? = null,
     val dob: String? = null,
-    val address: String? = null
+    val address: String? = null,
+    val token: String? = null
 )

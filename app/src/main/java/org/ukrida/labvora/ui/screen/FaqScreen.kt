@@ -51,7 +51,7 @@ private val faqList = listOf(
         answer = "Hasil yang sudah selesai dapat dilihat di menu Riwayat Pemeriksaan. Pilih riwayat yang berstatus Selesai untuk membuka halaman hasil lengkap."
     ),
     FaqItem(
-        question = "Bisakah saya mengubah jadwal atau klinik setelah memesan?",
+        question = "Bisakah saya mengubah jadwal atau lokasi klinik setelah memasukkan ke keranjang?",
         answer = "Bisa, selama pesanan masih di keranjang. Buka Keranjang Saya, tekan Ubah Jadwal pada item terkait, lalu pilih ulang jam dan lokasi klinik."
     ),
     FaqItem(
@@ -69,7 +69,7 @@ private val faqList = listOf(
 fun FaqScreen(
     onBack: () -> Unit
 ) {
-    var expandedIndex by remember { mutableStateOf<Int?>(0) }
+    var expandedIndex by remember { mutableStateOf<Int?>(null) }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp),

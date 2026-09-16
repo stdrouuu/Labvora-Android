@@ -49,6 +49,10 @@ fun HistoryScreen(
             viewModel.getHistoryList(userId)
         }
     }
+    // Reset isi search bar saat ganti page (jangan simpan permanen)
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose { viewModel.clearSearch() }
+    }
     val historyList = viewModel.historyList.value
     val searchQuery = viewModel.searchQuery.value
 

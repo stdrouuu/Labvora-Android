@@ -105,6 +105,7 @@ class MainActivity : ComponentActivity() {
                             onLogout = {
                                 isLoggedIn = false
                                 role = ""
+                                org.ukrida.labvora.data.api.RetrofitInstance.authToken = null
                                 userViewModel.currentUser.value = null
                                 navController.navigate("welcome") {
                                     popUpTo("main") { inclusive = true }
@@ -113,6 +114,7 @@ class MainActivity : ComponentActivity() {
                             onDeleteAccount = {
                                 isLoggedIn = false
                                 role = ""
+                                org.ukrida.labvora.data.api.RetrofitInstance.authToken = null
                                 navController.navigate("welcome") {
                                     popUpTo("main") { inclusive = true }
                                 }
@@ -127,6 +129,7 @@ class MainActivity : ComponentActivity() {
                             onLogout = {
                                 isLoggedIn = false
                                 role = ""
+                                org.ukrida.labvora.data.api.RetrofitInstance.authToken = null
                                 userViewModel.currentUser.value = null
                                 navController.navigate("welcome") {
                                     popUpTo("admin-home") { inclusive = true }
@@ -142,6 +145,7 @@ class MainActivity : ComponentActivity() {
                             onLogout = {
                                 isLoggedIn = false
                                 role = ""
+                                org.ukrida.labvora.data.api.RetrofitInstance.authToken = null
                                 userViewModel.currentUser.value = null
                                 navController.navigate("welcome") {
                                     popUpTo("admin-order") { inclusive = true }
@@ -157,6 +161,7 @@ class MainActivity : ComponentActivity() {
                             onLogout = {
                                 isLoggedIn = false
                                 role = ""
+                                org.ukrida.labvora.data.api.RetrofitInstance.authToken = null
                                 userViewModel.currentUser.value = null
                                 navController.navigate("welcome") {
                                     popUpTo("admin-input") { inclusive = true }

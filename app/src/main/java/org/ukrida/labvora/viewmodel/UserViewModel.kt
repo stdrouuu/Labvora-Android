@@ -37,6 +37,7 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
                 // Hapus dari daftar lokal — hanya jika server sukses
                 users.value = users.value.filter { it.id != userId }
                 // Bersihkan sesi pengguna
+                org.ukrida.labvora.data.api.RetrofitInstance.authToken = null
                 currentUser.value = null
                 isDeletingAccount.value = false
                 onSuccess()
@@ -68,7 +69,9 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
             isLoggingIn.value = true
             loginError.value = null
             try {
-                currentUser.value = repo.login(username, password)
+                val loggedInUser = repo.login(username, password)
+                org.ukrida.labvora.data.api.RetrofitInstance.authToken = loggedInUser.token
+                currentUser.value = loggedInUser
             } catch (e: retrofit2.HttpException) {
                 e.printStackTrace()
                 if (e.code() == 401) {

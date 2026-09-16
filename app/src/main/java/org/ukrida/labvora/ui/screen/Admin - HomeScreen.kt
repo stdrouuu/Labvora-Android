@@ -536,15 +536,24 @@ fun AdminBottomNav(navController: NavController, currentRoute: String) {
         Triple("admin-input", "Input Hasil", Icons.Default.Science)
     )
 
-    Box(
+    // Samakan dengan BottomNav user: background putih cover inset + navigationBarsPadding
+    // agar tidak terpotong di device dengan gesture nav / tombol sistem.
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(4.dp)
             .background(Color.White)
-            .height(72.dp)
+            .navigationBarsPadding()
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color(0xFFE5E7EB))
+        )
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(72.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {

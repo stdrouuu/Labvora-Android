@@ -54,6 +54,10 @@ fun AdminOrderScreen(
     LaunchedEffect(Unit) {
         viewModel.getBookings()
     }
+    // Reset isi search bar saat ganti page via bottom nav (jangan simpan permanen)
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose { viewModel.clearSearch() }
+    }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val filteredBookings = viewModel.filterBookings()
@@ -147,7 +151,7 @@ fun AdminOrderScreen(
                                 singleLine = true,
                                 visualTransformation = androidx.compose.ui.text.input.VisualTransformation.None,
                                 interactionSource = searchInteractionSource,
-                                placeholder = { Text("Cari nama pasien atau ID...", fontSize = 12.sp, color = Color.Gray) },
+                                placeholder = { Text("Cari nama pasien...", fontSize = 12.sp, color = Color.Gray) },
                                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Cari", tint = Color.Gray) },
                                 trailingIcon = {
                                     if (viewModel.searchQuery.value.isNotEmpty()) {

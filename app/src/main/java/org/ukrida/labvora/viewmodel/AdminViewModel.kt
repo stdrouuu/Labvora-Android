@@ -14,10 +14,6 @@ class AdminViewModel : ViewModel() {
     // Mock initial data
     private val _bookings = mutableStateOf<List<AdminBooking>>(emptyList())
 
-    init {
-        getBookings()
-    }
-
     fun getBookings() {
         viewModelScope.launch {
             try {
@@ -33,6 +29,11 @@ class AdminViewModel : ViewModel() {
     val searchQuery = mutableStateOf("")
     val searchDate = mutableStateOf("") // YYYY-MM-DD format from DatePickerDialog
     val activeStatusFilter = mutableStateOf("Semua")
+
+    // Reset search saat ganti page (jangan simpan di local storage / state permanen)
+    fun clearSearch() {
+        searchQuery.value = ""
+    }
 
     // Chart States
     val chartTimeframe = mutableStateOf("MingguIni") // "MingguIni" or "MingguLalu"

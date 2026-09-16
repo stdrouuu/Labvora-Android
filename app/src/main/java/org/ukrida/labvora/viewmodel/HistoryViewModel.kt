@@ -25,6 +25,11 @@ class HistoryViewModel : ViewModel() {
         _searchQuery.value = query
     }
 
+    // Reset search saat ganti page (jangan simpan di local storage / state permanen)
+    fun clearSearch() {
+        _searchQuery.value = ""
+    }
+
     fun getHistoryList(userId: Int) {
         viewModelScope.launch {
             try {

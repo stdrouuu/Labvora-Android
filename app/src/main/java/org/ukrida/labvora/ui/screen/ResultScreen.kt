@@ -275,7 +275,8 @@ fun ResultScreen(
             ) {
                 Button(
                     onClick = {
-                        val pdfUrl = "${RetrofitInstance.BASE_URL}results_pdf.php?booking_id=$bookingId"
+                        val tokenParam = RetrofitInstance.authToken?.let { "&token=${android.net.Uri.encode(it)}" } ?: ""
+                        val pdfUrl = "${RetrofitInstance.BASE_URL}results_pdf.php?booking_id=$bookingId$tokenParam"
                         try {
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(pdfUrl))
                             context.startActivity(intent)

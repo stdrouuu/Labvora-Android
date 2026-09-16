@@ -9,6 +9,10 @@ import java.util.concurrent.TimeUnit
 object RetrofitInstance {
     const val BASE_URL = "https://labvora.ifukrida.net/Labvora-API/routes/"
 
+    // Token JWT untuk autentikasi API
+    @Volatile
+    var authToken: String? = null
+
     // Base foto profil server — diturunkan dari BASE_URL agar ikut
     // pindah saat ganti ke lokal (Laragon) atau produksi.
     val uploadsBaseUrl: String
@@ -18,6 +22,15 @@ object RetrofitInstance {
     // tanpa ini default 10s -> ANR/crash saat closed testing.
     private val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val requestBuilder = original.newBuilder()
+                val token = authToken
+                if (!token.isNullOrBlank()) {
+                    requestBuilder.header("Authorization", "Bearer $token")
+                }
+                chain.proceed(requestBuilder.build())
+            }
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
