@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
+import org.ukrida.labvora.ui.components.EducationDisclaimerFooter
 
 data class FaqItem(
     val question: String,
@@ -61,6 +63,10 @@ private val faqList = listOf(
     FaqItem(
         question = "Bagaimana jika pesanan saya dibatalkan?",
         answer = "Pesanan yang dibatalkan akan menampilkan alasan pembatalan di halaman Status Pesanan. Silakan buat pesanan baru atau hubungi klinik terkait untuk informasi lebih lanjut."
+    ),
+    FaqItem(
+        question = "Apakah Labvora ini layanan medis sungguhan?",
+        answer = "Bukan. Labvora adalah aplikasi simulasi pembelajaran Informatika UKRIDA. Seluruh klinik, jadwal, hasil lab, dan pembayaran adalah contoh/dummy untuk edukasi, bukan layanan medis sungguhan."
     )
 )
 
@@ -110,6 +116,11 @@ fun FaqScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            item {
+                EducationDisclaimerBanner(
+                    modifier = Modifier.widthIn(max = 640.dp)
+                )
+            }
             itemsIndexed(faqList) { index, faq ->
                 val expanded = expandedIndex == index
                 Card(
@@ -185,6 +196,9 @@ fun FaqScreen(
                         }
                     }
                 }
+            }
+            item {
+                EducationDisclaimerFooter()
             }
         }
     }

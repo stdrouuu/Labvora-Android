@@ -24,6 +24,11 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
     var isDeletingAccount = mutableStateOf(false)
     var deleteAccountError = mutableStateOf<String?>(null)
 
+    // Ringan: hanya true saat profil benar-benar sedang dimuat/di-refresh.
+    // UI menampilkan spinner HANYA bila flag ini true atau currentUser null.
+    var isLoadingProfile = mutableStateOf(false)
+    var profileError = mutableStateOf<String?>(null)
+
     fun deleteAccount(onSuccess: () -> Unit, onError: (String) -> Unit = {}) {
         val userId = currentUser.value?.id ?: return
         viewModelScope.launch {
@@ -67,6 +72,7 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
     fun login(username: String, password: String) {
         viewModelScope.launch {
             isLoggingIn.value = true
+            isLoadingProfile.value = true
             loginError.value = null
             try {
                 val loggedInUser = repo.login(username, password)
@@ -89,6 +95,7 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
                 currentUser.value = null
             } finally {
                 isLoggingIn.value = false
+                isLoadingProfile.value = false
             }
         }
     }

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.ukrida.labvora.R
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 import org.ukrida.labvora.viewmodel.BookingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -314,6 +315,11 @@ if (test == null) {
             }
 
             // Preparations Card
+            Spacer(modifier = Modifier.height(16.dp))
+            EducationDisclaimerBanner(
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -451,6 +457,8 @@ if (test == null) {
                         color = Color(0xFF4B5563),
                         lineHeight = 20.sp
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    EducationDisclaimerBanner()
                 }
             }
         }

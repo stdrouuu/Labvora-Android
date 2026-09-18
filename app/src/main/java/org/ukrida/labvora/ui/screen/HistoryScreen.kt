@@ -29,6 +29,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.ukrida.labvora.viewmodel.HistoryViewModel
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
+import org.ukrida.labvora.ui.components.displayClinicName
 import org.ukrida.labvora.data.model.TestHistoryItem
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.LaunchedEffect
@@ -134,6 +136,9 @@ fun HistoryScreen(
             }
 
             // Title list header
+            EducationDisclaimerBanner(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -359,7 +364,7 @@ fun HistoryCard(
                                 modifier = Modifier.size(12.dp)
                             )
                             Text(
-                                text = item.clinicName,
+                                text = displayClinicName(item.clinicName),
                                 fontSize = 11.sp,
                                 color = Color(0xFF4B5563),
                                 fontWeight = FontWeight.Bold,

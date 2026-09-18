@@ -109,7 +109,7 @@ class BookingViewModel : ViewModel() {
     var selectedTest by mutableStateOf<LabTest?>(null)
         private set
 
-    var selectedClinic by mutableStateOf("Klinik Cinta Kasih PIK")
+    var selectedClinic by mutableStateOf("Klinik Labvora PIK")
     var selectedDate by mutableStateOf("2026-6-11") // default date as string format: YYYY-MM-DD
     var selectedTimeSlot by mutableStateOf("14:00")
     var hasDoctorReferral by mutableStateOf(false)

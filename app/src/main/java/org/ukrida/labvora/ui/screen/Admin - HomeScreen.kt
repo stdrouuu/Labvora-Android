@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.ui.window.Dialog
 import org.ukrida.labvora.data.model.AdminBooking
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 import org.ukrida.labvora.viewmodel.AdminViewModel
 import java.util.Calendar
 
@@ -144,6 +146,10 @@ fun AdminHomeScreen(
                     )
                 }
             }
+
+            EducationDisclaimerBanner(
+                text = stringResource(org.ukrida.labvora.R.string.disclaimer_admin)
+            )
 
             // Stats Cards
             Column(

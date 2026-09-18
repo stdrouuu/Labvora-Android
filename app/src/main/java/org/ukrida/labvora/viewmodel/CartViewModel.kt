@@ -95,7 +95,7 @@ class CartViewModel : ViewModel() {
 
     fun addToCart(
         test: LabTest,
-        clinicName: String = "Klinik Cinta Kasih PIK",
+        clinicName: String = "Klinik Labvora PIK",
         bookingDate: String = "2026-6-11",
         bookingTime: String = "14:00",
         hasDoctorReferral: Boolean = false,

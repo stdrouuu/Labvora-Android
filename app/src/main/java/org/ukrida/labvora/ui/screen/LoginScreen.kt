@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
 import org.ukrida.labvora.R
+import org.ukrida.labvora.ui.components.EducationDisclaimerFooter
 import org.ukrida.labvora.viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -385,7 +386,7 @@ fun LoginScreen(
 
             // Daftar sekarang
             Row(
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             ) {
                 Text(
                     text = "Belum punya akun? ",
@@ -403,6 +404,9 @@ fun LoginScreen(
                     }
                 )
             }
+            EducationDisclaimerFooter(
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
         }
     }
 }

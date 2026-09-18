@@ -58,8 +58,27 @@ fun MainScreen(
             cartViewModel.initCartForUser(context, userId)
         }
     }
+    // ponytail: baseline max id dicatat SEBELUM refetch, agar pill/stripe
+    // "baru" hanya untuk order yang dibuat pada pemesanan ini
+    fun snapshotHighlightBaseline() {
+        val ids = (historyViewModel.pendingOrders.value + historyViewModel.historyList.value)
+            .map { it.id }
+        historyViewModel.highlightAboveId.value = ids.maxOrNull() ?: 0
+    }
     LaunchedEffect(userId, bookingViewModel.isOrderCompleted) {
-        if (userId > 0) {
+        if (userId > 0 && bookingViewModel.isOrderCompleted) {
+            snapshotHighlightBaseline()
+            historyViewModel.getHistoryList(userId)
+        } else if (userId > 0) {
+            historyViewModel.getHistoryList(userId)
+        }
+    }
+    // ponytail: checkout keranjang tidak menyentuh BookingViewModel, jadi
+    // refetch + baseline di-trigger dari flag sukses CartViewModel. Tanpa ini
+    // badge "ada yang baru" tidak muncul setelah Tutup dari modal keranjang.
+    LaunchedEffect(userId, cartViewModel.showCheckoutSuccessModal.value) {
+        if (userId > 0 && cartViewModel.showCheckoutSuccessModal.value) {
+            snapshotHighlightBaseline()
             historyViewModel.getHistoryList(userId)
         }
     }

@@ -54,6 +54,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.ukrida.labvora.R
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
+import org.ukrida.labvora.ui.components.EducationDisclaimerFooter
+import org.ukrida.labvora.util.SeenOrderStore
 import org.ukrida.labvora.viewmodel.UserViewModel
 import org.ukrida.labvora.viewmodel.BookingViewModel
 import org.ukrida.labvora.viewmodel.HistoryViewModel
@@ -83,6 +86,21 @@ fun HomeScreen(
     val lastHistoryItem = historyViewModel.historyList.value.firstOrNull()
     val lastTestDate = lastHistoryItem?.date ?: "-"
 
+    // Badge "ada yang baru": pesanan yang belum pernah dibuka + pesanan
+    // yang statusnya pindah (misal Menunggu -> Dikonfirmasi).
+    // Hilang sendiri setelah Status Pesanan dikunjungi (ditandai dilihat di sana).
+    val homeUserId = currentUser?.id ?: 0
+    val seenVer = historyViewModel.orderSeenVersion.value
+    val unseenOrderCount = remember(
+        historyViewModel.pendingOrders.value,
+        historyViewModel.historyList.value,
+        homeUserId, seenVer
+    ) {
+        val items = (historyViewModel.pendingOrders.value + historyViewModel.historyList.value)
+            .distinctBy { it.id }
+        SeenOrderStore.getFreshIds(context, homeUserId, items).size
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -93,7 +111,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(max = 840.dp)
+                .widthIn(max = 560.dp)
                 .align(Alignment.CenterHorizontally)
         ) {
         // Welcome Header Section
@@ -147,6 +165,9 @@ fun HomeScreen(
                 fontSize = 10.sp,
                 color = Color(0xFF9CA3AF),
                 modifier = Modifier.padding(top = 4.dp)
+            )
+            EducationDisclaimerBanner(
+                modifier = Modifier.padding(top = 10.dp)
             )
         }
 
@@ -296,6 +317,7 @@ fun HomeScreen(
                 icon = Icons.Default.Inventory,
                 label = "Lihat\nStatus Pesanan",
                 modifier = Modifier.weight(1f),
+                badgeCount = unseenOrderCount,
                 onClick = onNavigateToOrderStatus
             )
             // Action 2
@@ -341,7 +363,7 @@ fun HomeScreen(
                     title = buildAnnotatedString {
                         append("Cek Darah di ")
                         withStyle(style = SpanStyle(color = Color(0xFF3CB7A6), fontWeight = FontWeight.ExtraBold)) {
-                            append("Klinik Cinta Kasih!")
+                            append("Klinik Labvora!")
                         }
                     },
                     discountText = "Hemat 15%",
@@ -355,7 +377,7 @@ fun HomeScreen(
                     title = buildAnnotatedString {
                         append("Proteksi Keluarga Bersama ")
                         withStyle(style = SpanStyle(color = Color(0xFF3CB7A6), fontWeight = FontWeight.ExtraBold)) {
-                            append("Cinta Care")
+                            append("Labvora Care")
                         }
                     },
                     discountText = "Hemat 20%",
@@ -496,6 +518,9 @@ fun HomeScreen(
                     }
                 }
             }
+            EducationDisclaimerFooter(
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
         }
     }
@@ -516,9 +541,9 @@ fun HomeScreen(
             text = {
                 Text(
                     text = if (isFirst)
-                        "Hemat 15% untuk semua skrining lab lengkap di Klinik Cinta Kasih.\n\n• Min. transaksi Rp1.500.000\n• Berlaku untuk semua cabang Klinik Cinta Kasih\n• Tunjukkan halaman ini saat pembayaran di klinik"
+                        "Hemat 15% untuk semua skrining lab lengkap di Klinik Labvora.\n\n• Min. transaksi Rp1.500.000\n• Berlaku untuk semua cabang Klinik Labvora\n• Tunjukkan halaman ini saat pembayaran di klinik"
                     else
-                        "Hemat 20% untuk paket pemeriksaan lansia Cinta Care.\n\n• Termasuk konsultasi dokter\n• Berlaku untuk semua cabang Klinik Cinta Kasih\n• Tunjukkan halaman ini saat pembayaran di klinik",
+                        "Hemat 20% untuk paket pemeriksaan lansia Labvora Care.\n\n• Termasuk konsultasi dokter\n• Berlaku untuk semua cabang Klinik Labvora\n• Tunjukkan halaman ini saat pembayaran di klinik",
                     fontSize = 13.sp,
                     color = Color(0xFF4B5563),
                     lineHeight = 19.sp
@@ -541,6 +566,7 @@ fun QuickActionButton(
     label: String,
     modifier: Modifier = Modifier,
     showGratisBadge: Boolean = false,
+    badgeCount: Int = 0,
     onClick: () -> Unit = {}
 ) {
     Column(
@@ -577,6 +603,26 @@ fun QuickActionButton(
                         color = Color.White,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.ExtraBold
+                    )
+                }
+            }
+            // Badge merah jumlah pesanan baru — pola sama seperti badge keranjang
+            if (badgeCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 6.dp, y = (-6).dp)
+                        .sizeIn(minWidth = 20.dp, minHeight = 20.dp)
+                        .background(Color(0xFFF75F65), CircleShape)
+                        .padding(horizontal = 5.dp, vertical = 1.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (badgeCount > 99) "99+" else badgeCount.toString(),
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
                     )
                 }
             }

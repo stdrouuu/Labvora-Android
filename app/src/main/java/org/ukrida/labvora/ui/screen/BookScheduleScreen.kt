@@ -25,12 +25,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.ukrida.labvora.viewmodel.BookingViewModel
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 import java.util.Calendar
 
 import org.ukrida.labvora.viewmodel.CartViewModel
@@ -58,10 +60,10 @@ fun BookScheduleScreen(
     val minMonth = todayMonth
 
     val clinics = listOf(
-        "Klinik Cinta Kasih PIK",
-        "Klinik Cinta Kasih Kebon Jeruk",
-        "Klinik Cinta Kasih Menteng",
-        "Klinik Cinta Kasih Bintaro"
+        "Klinik Labvora PIK",
+        "Klinik Labvora Kebon Jeruk",
+        "Klinik Labvora Menteng",
+        "Klinik Labvora Bintaro"
     )
     var dropdownExpanded by remember { mutableStateOf(false) }
 
@@ -488,6 +490,9 @@ fun BookScheduleScreen(
                         color = Color.White
                     )
                 }
+                EducationDisclaimerBanner(
+                    text = stringResource(org.ukrida.labvora.R.string.disclaimer_schedule)
+                )
             }
         }
     }

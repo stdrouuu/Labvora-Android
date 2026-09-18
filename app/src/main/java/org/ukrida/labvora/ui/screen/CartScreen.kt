@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +49,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.ukrida.labvora.data.model.CartItem
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
+import org.ukrida.labvora.ui.components.displayClinicName
 import org.ukrida.labvora.viewmodel.CartViewModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 
@@ -356,6 +359,10 @@ fun CartScreen(
                                         color = Color(0xFF6B7280),
                                         fontStyle = FontStyle.Italic
                                     )
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    EducationDisclaimerBanner(
+                                        text = stringResource(org.ukrida.labvora.R.string.disclaimer_cart)
+                                    )
                                 }
                             }
                         }
@@ -520,18 +527,18 @@ fun CartScreen(
                             }
                         }
                     } else {
-                        // Alert 2: Petunjuk Pembayaran — merah sesuai theme Labvora
+                        // Alert 2: Petunjuk Pembayaran — abu-abu netral
                         Box(
                             modifier = Modifier
                                 .size(64.dp)
-                                .background(Color(0xFFFEE2E2), CircleShape)
-                                .border(1.dp, Color(0xFFFECACA), CircleShape),
+                                .background(Color(0xFFF3F4F6), CircleShape)
+                                .border(1.dp, Color(0xFFE5E7EB), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Info,
                                 contentDescription = "Info Administrasi",
-                                tint = Color(0xFFEF4444),
+                                tint = Color(0xFF9CA3AF),
                                 modifier = Modifier.size(32.dp)
                             )
                         }
@@ -740,7 +747,7 @@ fun CartItemCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = item.clinicName,
+                            text = displayClinicName(item.clinicName),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF374151),
@@ -823,10 +830,10 @@ fun EditScheduleDialog(
     var isClinicDropdownExpanded by remember { mutableStateOf(false) }
 
     val clinics = listOf(
-        "Klinik Cinta Kasih PIK",
-        "Klinik Cinta Kasih Kebon Jeruk",
-        "Klinik Cinta Kasih Menteng",
-        "Klinik Cinta Kasih Bintaro"
+        "Klinik Labvora PIK",
+        "Klinik Labvora Kebon Jeruk",
+        "Klinik Labvora Menteng",
+        "Klinik Labvora Bintaro"
     )
 
     val timeSlotsPagi = listOf("08:00", "09:00", "10:00", "11:00")

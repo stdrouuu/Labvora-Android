@@ -39,6 +39,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import org.ukrida.labvora.R
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
+import org.ukrida.labvora.ui.components.EducationDisclaimerFooter
+import org.ukrida.labvora.ui.components.displayClinicName
 import org.ukrida.labvora.util.resolvePhotoModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 import org.ukrida.labvora.viewmodel.BookingViewModel
@@ -86,6 +89,9 @@ fun ProfileScreen(
         } catch (_: Exception) { "1.0.5" }
     }
     val isDeletingAccount = viewModel.isDeletingAccount.value
+    // Ringan: spinner hanya saat profil benar-benar belum siap, bukan permanen.
+    val isLoadingProfile = viewModel.isLoadingProfile.value
+    val showProfileLoading = isLoadingProfile || currentUser == null
     var deleteErrorMsg by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(currentUser?.id) {
@@ -206,6 +212,29 @@ fun ProfileScreen(
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                 textAlign = TextAlign.Center
                             )
+
+                            // Ringan: 1 spinner standar saja, hanya saat profil belum keload.
+                            if (showProfileLoading) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        color = Color(0xFF3CB7A6),
+                                        strokeWidth = 2.dp
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Memuat profil...",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF9CA3AF),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -452,6 +481,9 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+                EducationDisclaimerFooter(
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
         }
     }
@@ -599,7 +631,7 @@ fun ProfileScreen(
                                                 fontSize = 12.sp
                                             )
                                             Text(
-                                                order.clinicName,
+                                                displayClinicName(order.clinicName),
                                                 color = Color.Black,
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.SemiBold,
@@ -819,6 +851,8 @@ fun ProfileScreen(
                         lineHeight = 18.sp,
                         textAlign = TextAlign.Center
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    EducationDisclaimerBanner()
                     Spacer(modifier = Modifier.height(12.dp))
                     HorizontalDivider(color = Color(0xFFF3F4F6), thickness = 1.dp)
                     Spacer(modifier = Modifier.height(12.dp))

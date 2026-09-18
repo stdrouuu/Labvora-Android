@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.ukrida.labvora.viewmodel.BookingViewModel
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 
 data class LabTest(
     val id: Int,
@@ -64,7 +65,6 @@ fun ListTestScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showHelpDialog by remember { mutableStateOf(false) }
-    var showPromoDialog by remember { mutableStateOf(false) }
 
     val allTests = remember {
         listOf(
@@ -161,6 +161,9 @@ fun ListTestScreen(
             color = Color(0xFF1F2937),
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
         )
+        EducationDisclaimerBanner(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+        )
 
         // Cards List
         Column(
@@ -216,8 +219,8 @@ fun ListTestScreen(
                 }
             }
 
-            // Promo banner card (static)
-            PromoSpecialBanner(onClick = { showPromoDialog = true })
+            // Promo banner card (static, info only)
+            PromoSpecialBanner()
 
             // Need help card (static - Disembunyikan sementara)
             // NeedHelpCard(onContactClick = { showHelpDialog = true })
@@ -245,35 +248,6 @@ fun ListTestScreen(
             confirmButton = {
                 TextButton(onClick = { showHelpDialog = false }) {
                     Text(text = "Oke", color = Color(0xFF3CB7A6), fontWeight = FontWeight.Bold)
-                }
-            },
-            shape = RoundedCornerShape(24.dp),
-            containerColor = Color.White
-        )
-    }
-
-    if (showPromoDialog) {
-        AlertDialog(
-            onDismissRequest = { showPromoDialog = false },
-            title = {
-                Text(
-                    text = "Kesehatan Adalah Harta",
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 16.sp,
-                    color = Color(0xFF1F2937)
-                )
-            },
-            text = {
-                Text(
-                    text = "\"Kesehatan yang baik bukanlah sesuatu yang dapat kita beli. Namun, sesuatu yang dapat menjadi tabungan yang sangat berharga.\"\n\n~ Anne Wilson Schaef\n\nJaga kesehatan Anda dengan rutin melakukan pemeriksaan lab di Labvora.",
-                    fontSize = 13.sp,
-                    color = Color(0xFF4B5563),
-                    lineHeight = 19.sp
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { showPromoDialog = false }) {
-                    Text(text = "Tutup", color = Color(0xFF3CB7A6), fontWeight = FontWeight.Bold)
                 }
             },
             shape = RoundedCornerShape(24.dp),
@@ -408,11 +382,10 @@ fun LabTestCardItem(test: LabTest, onPesanClick: () -> Unit) {
 }
 
 @Composable
-fun PromoSpecialBanner(onClick: () -> Unit = {}) {
+fun PromoSpecialBanner() {
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
+            .fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF3EB3A2)),
         shape = RoundedCornerShape(32.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)

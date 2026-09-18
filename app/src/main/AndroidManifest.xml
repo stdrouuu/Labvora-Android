@@ -21,6 +21,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:resizeableActivity="false"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.Labvora">
             <intent-filter>

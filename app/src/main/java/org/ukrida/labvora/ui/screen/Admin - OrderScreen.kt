@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +42,7 @@ import androidx.navigation.NavController
 import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.launch
 import org.ukrida.labvora.data.model.AdminBooking
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 import org.ukrida.labvora.viewmodel.AdminViewModel
 import java.util.*
 
@@ -332,7 +334,12 @@ fun AdminOrderScreen(
                             tint = Color.LightGray,
                             modifier = Modifier.size(48.dp)
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            EducationDisclaimerBanner(
+                text = stringResource(org.ukrida.labvora.R.string.disclaimer_admin)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Belum ada pesanan yang cocok.",
                             fontSize = 12.sp,
@@ -601,6 +608,9 @@ fun AdminOrderScreen(
                 }
 
                 // Actions Button
+                EducationDisclaimerBanner(
+                    text = stringResource(org.ukrida.labvora.R.string.disclaimer_admin)
+                )
                 Column(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.padding(top = 8.dp)

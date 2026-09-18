@@ -53,6 +53,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import org.ukrida.labvora.R
+import org.ukrida.labvora.ui.components.EducationDisclaimerFooter
 import org.ukrida.labvora.data.model.User
 import org.ukrida.labvora.util.copyUriToProfileFile
 import org.ukrida.labvora.util.createProfilePhotoFile
@@ -845,7 +846,7 @@ fun RegisterScreen(
 
             // Redirect back to login page link
             Row(
-                modifier = Modifier.padding(bottom = 24.dp),
+                modifier = Modifier.padding(bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -861,6 +862,9 @@ fun RegisterScreen(
                     modifier = Modifier.clickable { onRegisterSuccess() }
                 )
             }
+            EducationDisclaimerFooter(
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
         }
     }
 }

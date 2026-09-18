@@ -28,6 +28,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -41,6 +42,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.ukrida.labvora.viewmodel.BookingViewModel
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
+import org.ukrida.labvora.ui.components.EducationDisclaimerFooter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,10 +78,10 @@ fun OrderReviewScreen(
     }
 
     val clinicAddress = when (bookingViewModel.selectedClinic) {
-        "Klinik Cinta Kasih PIK" -> "The Gallery Blok 8, No. EG,\nJl. Pantai Indah Utara"
-        "Klinik Cinta Kasih Kebon Jeruk" -> "Jl. Panjang No. 18,\nKebon Jeruk, Jakarta Barat"
-        "Klinik Cinta Kasih Menteng" -> "Jl. Teuku Cik Ditiro No. 25,\nMenteng, Jakarta Pusat"
-        "Klinik Cinta Kasih Bintaro" -> "Ruko Kebayoran Arcade 1 Blok C1 No. 5,\nBintaro Jaya, Tangerang Selatan"
+        "Klinik Labvora PIK" -> "The Gallery Blok 8, No. EG,\nJl. Pantai Indah Utara"
+        "Klinik Labvora Kebon Jeruk" -> "Jl. Panjang No. 18,\nKebon Jeruk, Jakarta Barat"
+        "Klinik Labvora Menteng" -> "Jl. Teuku Cik Ditiro No. 25,\nMenteng, Jakarta Pusat"
+        "Klinik Labvora Bintaro" -> "Ruko Kebayoran Arcade 1 Blok C1 No. 5,\nBintaro Jaya, Tangerang Selatan"
         else -> "The Gallery Blok 8, No. EG,\nJl. Pantai Indah Utara"
     }
 
@@ -191,6 +194,11 @@ fun OrderReviewScreen(
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp)
                 )
+                EducationDisclaimerBanner(
+                    text = stringResource(org.ukrida.labvora.R.string.disclaimer_schedule),
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Main Details Card
                 Card(
@@ -491,6 +499,9 @@ fun OrderReviewScreen(
                 }
 
                 // CTA Button confirm
+                EducationDisclaimerFooter(
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -668,17 +679,17 @@ fun OrderReviewScreen(
                             }
                         }
                     } else {
-                        // Alert 2: Petunjuk Pembayaran
+                        // Alert 2: Petunjuk Pembayaran — abu-abu netral
                         Box(
                             modifier = Modifier
                                 .size(64.dp)
-                                .background(Color(0xFFFEF3C7), CircleShape),
+                                .background(Color(0xFFF3F4F6), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Info,
                                 contentDescription = "Info Administrasi",
-                                tint = Color(0xFFD97706),
+                                tint = Color(0xFF9CA3AF),
                                 modifier = Modifier.size(32.dp)
                             )
                         }

@@ -21,6 +21,16 @@ class HistoryViewModel : ViewModel() {
     private val _searchQuery = mutableStateOf("")
     val searchQuery: State<String> = _searchQuery
 
+    // Bump setiap Status Pesanan menandai pesanan sebagai "sudah dilihat",
+    // agar badge di Beranda ikut refresh tanpa perlu refetch.
+    var orderSeenVersion = mutableStateOf(0)
+
+    // Batas id booking saat pemesanan terakhir dibuat. Selama terisi, Status
+    // Pesanan hanya menandai (pill/stripe) order dengan id di atasnya — jadi
+    // yang dibuka dari modal habis memesan hanya menampilkan pill pesanan
+    // yang baru dipesan. Dibersihkan saat Status Pesanan ditinggalkan.
+    var highlightAboveId = mutableStateOf<Int?>(null)
+
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
     }

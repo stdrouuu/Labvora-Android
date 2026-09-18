@@ -26,12 +26,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import android.content.Intent
 import android.net.Uri
 import org.ukrida.labvora.data.api.RetrofitInstance
 import org.ukrida.labvora.viewmodel.ResultViewModel
 import org.ukrida.labvora.viewmodel.BookingViewModel
 import org.ukrida.labvora.data.model.TestParameterResult
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
+import org.ukrida.labvora.ui.components.EducationDisclaimerFooter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,6 +142,11 @@ fun ResultScreen(
                     color = Color(0xFF1E293B),
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                 )
+                EducationDisclaimerBanner(
+                    text = stringResource(org.ukrida.labvora.R.string.disclaimer_result),
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
 
             // Results Card
             Card(
@@ -308,6 +316,10 @@ fun ResultScreen(
             }
 
             Spacer(modifier = Modifier.height(32.dp))
+
+            EducationDisclaimerFooter(
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
 
             // Quote Section
             Box(

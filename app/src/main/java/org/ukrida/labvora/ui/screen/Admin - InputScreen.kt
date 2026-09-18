@@ -28,9 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import org.ukrida.labvora.data.model.AdminBooking
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 import org.ukrida.labvora.viewmodel.AdminViewModel
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -94,6 +96,11 @@ fun AdminInputScreen(
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
+
+            EducationDisclaimerBanner(
+                text = stringResource(org.ukrida.labvora.R.string.disclaimer_admin)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
 
             if (needInput.isEmpty()) {
                 Box(
@@ -455,6 +462,10 @@ fun InputResultModal(
                     Icon(Icons.Default.Clear, contentDescription = "Tutup", tint = Color.Gray)
                 }
             }
+
+            EducationDisclaimerBanner(
+                text = stringResource(org.ukrida.labvora.R.string.disclaimer_admin)
+            )
 
             // Input Groups Cards
             groups.forEach { (groupName, groupKeys) ->

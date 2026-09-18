@@ -23,11 +23,18 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.*
+import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
+import org.ukrida.labvora.ui.components.EducationDisclaimerFooter
+import org.ukrida.labvora.util.SeenOrderStore
+import org.ukrida.labvora.ui.components.displayClinicName
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -99,10 +106,39 @@ fun OrderStatusScreen(
             }
             statusMatch && dateMatch
         }
-        val sorted = filtered.sortedWith(
-            compareBy<TestHistoryItem> { parseDateMillis(it.date) }.thenBy { it.id }
-        )
+        // ponytail: urut-align id booking — booking terbaru (id terbesar) selalu paling atas
+        val sorted = filtered.sortedBy { it.id }
         if (isNewestFirst) sorted.reversed() else sorted
+    }
+
+    // Stripe/pill "baru" dihitung live dari prefs tiap data berubah, supaya
+    // pesanan yang datang telat (fetch selesai setelah halaman kebuka) tetap
+    // dapat pill. Ditandai dilihat saat keluar halaman — kunjungan berikutnya
+    // hilang, sekaligus badge Beranda ikut nol.
+    // fresh = pesanan baru + pesanan yang statusnya pindah (stripe).
+    // new = belum pernah dilihat sama sekali (pill "Terbaru dipesan").
+    // Jika highlightAboveId terisi (dibuka dari modal habis memesan), hanya
+    // order yang id-nya di atas batas itu yang ditandai — pill order
+    // terbaru sebelumnya tidak ikut muncul.
+    val seenTick = historyViewModel.orderSeenVersion.value
+    val highlightAbove = historyViewModel.highlightAboveId.value
+    val freshIds = remember(allOrders, userId, seenTick, highlightAbove) {
+        val fresh = SeenOrderStore.getFreshIds(context, userId, allOrders)
+        if (highlightAbove != null) fresh.filter { it > highlightAbove } else fresh
+    }
+    val newIds = remember(allOrders, userId, seenTick, highlightAbove) {
+        val fresh = SeenOrderStore.getNewIds(context, userId, allOrders)
+        if (highlightAbove != null) fresh.filter { it > highlightAbove } else fresh
+    }
+    val latestOrders = rememberUpdatedState(allOrders)
+    DisposableEffect(userId) {
+        onDispose {
+            if (userId > 0 && latestOrders.value.isNotEmpty()) {
+                SeenOrderStore.markSeenItems(context, userId, latestOrders.value)
+                historyViewModel.highlightAboveId.value = null
+                historyViewModel.orderSeenVersion.value++
+            }
+        }
     }
 
     val statusTabs = listOf("Semua", "Menunggu", "Dikonfirmasi", "Sedang diuji", "Selesai", "Dibatalkan")
@@ -345,6 +381,9 @@ fun OrderStatusScreen(
 
                     Spacer(modifier = Modifier.height(4.dp))
                     HorizontalDivider(color = Color(0xFFF3F4F6), thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                    EducationDisclaimerBanner(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
 
                     // ===== LIST =====
                     if (filteredSorted.isEmpty()) {
@@ -412,7 +451,15 @@ fun OrderStatusScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             itemsIndexed(filteredSorted) { _, order ->
-                                OrderStatusCard(order = order)
+                                OrderStatusCard(
+                                    order = order,
+                                    isNew = freshIds.contains(order.id),
+                                    showNewPill = newIds.contains(order.id),
+                                    showUpdatedPill = freshIds.contains(order.id) && !newIds.contains(order.id)
+                                )
+                            }
+                            item {
+                                EducationDisclaimerFooter()
                             }
                         }
                     }
@@ -531,7 +578,12 @@ private fun formatDateDisplay(isoDate: String): String {
 }
 
 @Composable
-fun OrderStatusCard(order: TestHistoryItem) {
+fun OrderStatusCard(
+    order: TestHistoryItem,
+    isNew: Boolean = false,
+    showNewPill: Boolean = false,
+    showUpdatedPill: Boolean = false
+) {
     val (statusBg, statusFg) = when (order.status) {
         "Menunggu" -> Color(0xFFFEF3C7) to Color(0xFFD97706)
         "Dikonfirmasi" -> Color(0xFFE0F2FE) to Color(0xFF0369A1)
@@ -542,6 +594,7 @@ fun OrderStatusCard(order: TestHistoryItem) {
 
     val displayTitle = if (order.title.isNotBlank()) order.title else order.testTitle
 
+    Box(modifier = Modifier.fillMaxWidth()) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -555,12 +608,30 @@ fun OrderStatusCard(order: TestHistoryItem) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "No. Booking #${order.id}",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF4B5563)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "No. Booking #${order.id}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF4B5563)
+                    )
+                    if (showNewPill || showUpdatedPill) {
+                        Text(
+                            text = if (showNewPill) "Terbaru dipesan" else "Status diperbarui",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            maxLines = 1,
+                            modifier = Modifier
+                                .background(Color(0xFFF65C63), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                }
 
                 Text(
                     text = order.status,
@@ -595,7 +666,7 @@ fun OrderStatusCard(order: TestHistoryItem) {
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = order.clinicName.ifBlank { "Klinik Cinta Kasih PIK" },
+                    text = displayClinicName(order.clinicName),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF374151)
@@ -682,6 +753,20 @@ fun OrderStatusCard(order: TestHistoryItem) {
                 // Timeline Progress Bar (4 Steps)
                 OrderStatusTimeline(currentStatus = order.status)
             }
+        }
+    }
+        // Stripe hijau "baru dipesan" di sisi kanan kartu — hanya sekali lihat
+        if (isNew) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .width(10.dp)
+                    .fillMaxHeight()
+                    .background(
+                        Color(0xFF15803D),
+                        RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp)
+                    )
+            )
         }
     }
 }
