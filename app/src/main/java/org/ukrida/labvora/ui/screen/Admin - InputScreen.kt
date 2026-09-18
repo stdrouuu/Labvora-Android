@@ -361,8 +361,9 @@ fun InputQueueCard(booking: AdminBooking, onInputClick: () -> Unit) {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    val dateTimeText = if (booking.time.isNotBlank()) "${booking.date} · ${booking.time}" else booking.date
                     Text(
-                        text = "${booking.id} · Jadwal: ${booking.date}",
+                        text = dateTimeText,
                         fontSize = 10.sp,
                         color = Color.Gray
                     )

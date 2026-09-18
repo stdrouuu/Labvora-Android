@@ -62,12 +62,6 @@ fun AdminHomeScreen(
                             fontWeight = FontWeight.ExtraBold,
                             color = Color(0xFF1A2E35)
                         )
-                        Text(
-                            text = "Juli 2026",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.Gray
-                        )
                     }
                 },
                 actions = {
