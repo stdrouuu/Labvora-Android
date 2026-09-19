@@ -1,10 +1,10 @@
 <resources>
     <string name="app_name">Labvora</string>
-    <string name="disclaimer_education_short">Mode Pembelajaran — Simulasi Informatika UKRIDA. Bukan layanan medis.</string>
-    <string name="disclaimer_education_long">Aplikasi ini untuk pembelajaran/simulasi Informatika UKRIDA. Bukan layanan medis sungguhan. Data, jadwal, hasil lab, dan pembayaran adalah contoh/dummy untuk edukasi.</string>
-    <string name="disclaimer_cart">Aplikasi ini untuk pembelajaran/simulasi Informatika UKRIDA. Transaksi klinis atau medis sungguhan tidak dilayani. Alur pemesanan dan pembayaran hanya disimulasikan untuk edukasi.</string>
-    <string name="disclaimer_result">Aplikasi ini untuk pembelajaran/simulasi Informatika UKRIDA. Hasil pada halaman ini adalah contoh/dummy untuk edukasi, bukan hasil medis sungguhan.</string>
-    <string name="disclaimer_schedule">Aplikasi ini untuk pembelajaran/simulasi Informatika UKRIDA. Jadwal dan klinik pada halaman ini adalah contoh/dummy untuk edukasi, bukan layanan medis sungguhan.</string>
-    <string name="disclaimer_admin">Panel admin untuk pembelajaran/simulasi Informatika UKRIDA. Data pasien, hasil lab, dan status pesanan adalah contoh/dummy untuk edukasi.</string>
-    <string name="disclaimer_about">Labvora adalah aplikasi untuk pembelajaran/simulasi Informatika UKRIDA. Seluruh data di dalamnya adalah contoh/dummy untuk edukasi.</string>
+    <string name="disclaimer_education_short">For Educational Purposes — Simulasi Informatics Engineering. Bukan layanan medis.</string>
+    <string name="disclaimer_education_long">Aplikasi ini untuk pembelajaran/simulasi Informatics Engineering. Bukan layanan medis sungguhan. Data, jadwal, hasil lab, dan pembayaran adalah contoh/dummy untuk edukasi.</string>
+    <string name="disclaimer_cart">Aplikasi ini untuk pembelajaran/simulasi Informatics Engineering. Transaksi klinis atau medis sungguhan tidak dilayani. Alur pemesanan dan pembayaran hanya disimulasikan untuk edukasi.</string>
+    <string name="disclaimer_result">Aplikasi ini untuk pembelajaran/simulasi Informatics Engineering. Hasil pada halaman ini adalah contoh/dummy untuk edukasi, bukan hasil medis sungguhan.</string>
+    <string name="disclaimer_schedule">Aplikasi ini untuk pembelajaran/simulasi Informatics Engineering. Jadwal dan klinik pada halaman ini adalah contoh/dummy untuk edukasi, bukan layanan medis sungguhan.</string>
+    <string name="disclaimer_admin">Panel admin untuk pembelajaran/simulasi Informatics Engineering. Data pasien, hasil lab, dan status pesanan adalah contoh/dummy untuk edukasi.</string>
+    <string name="disclaimer_about">Labvora adalah aplikasi untuk pembelajaran/simulasi Informatics Engineering. Seluruh data di dalamnya adalah contoh/dummy untuk edukasi.</string>
 </resources>

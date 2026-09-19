@@ -66,7 +66,7 @@ private val faqList = listOf(
     ),
     FaqItem(
         question = "Apakah Labvora ini layanan medis sungguhan?",
-        answer = "Bukan. Labvora adalah aplikasi simulasi pembelajaran Informatika UKRIDA. Seluruh klinik, jadwal, hasil lab, dan pembayaran adalah contoh/dummy untuk edukasi, bukan layanan medis sungguhan."
+        answer = "Bukan. Labvora adalah aplikasi simulasi pembelajaran Informatics Engineering. Seluruh klinik, jadwal, hasil lab, dan pembayaran adalah contoh/dummy untuk edukasi, bukan layanan medis sungguhan."
     )
 )
 

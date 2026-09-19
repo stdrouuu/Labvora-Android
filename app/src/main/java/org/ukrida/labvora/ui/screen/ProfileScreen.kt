@@ -864,7 +864,7 @@ fun ProfileScreen(
                         letterSpacing = 1.sp
                     )
                     Text(
-                        text = "Tim Labvora • Universitas Kristen Krida Wacana (UKRIDA)",
+                        text = "Tim Labvora - Informatics Engineering - Universitas Kristen Krida Wacana (UKRIDA)",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF374151),
