@@ -168,23 +168,54 @@ class CartViewModel : ViewModel() {
 
         viewModelScope.launch {
             isCheckingOut.value = true
-            var successCount = 0
             try {
-                for (item in itemsToCheckout) {
-                    val response = RetrofitInstance.api.createBooking(
-                        mapOf(
-                            "user_id" to userId,
-                            "test_id" to item.test.id,
-                            "booking_date" to item.bookingDate,
-                            "booking_time" to item.bookingTime,
-                            "clinic_name" to item.clinicName,
-                            "status" to "Menunggu",
-                            "result_status" to "Menunggu Hasil",
-                            "referral_photo" to if (item.hasDoctorReferral) "present" else null
-                        )
+                // PERF: 1 request batch untuk N item (dulu: N request berurutan).
+                // 3 item yang dulu ~30 detik -> sekarang ~1-2 detik total.
+                val items = itemsToCheckout.map { item ->
+                    mapOf(
+                        "test_id" to item.test.id,
+                        "booking_date" to item.bookingDate,
+                        "booking_time" to item.bookingTime,
+                        "clinic_name" to item.clinicName,
+                        "status" to "Menunggu",
+                        "result_status" to "Menunggu Hasil",
+                        "referral_photo" to if (item.hasDoctorReferral) "present" else null
                     )
-                    if (response.isSuccessful) {
-                        successCount++
+                }
+                var batchOk = false
+                try {
+                    val batchResp = RetrofitInstance.api.checkoutBatch(
+                        mapOf("user_id" to userId, "items" to items)
+                    )
+                    batchOk = batchResp.isSuccessful && (batchResp.body()?.success == true)
+                } catch (e: retrofit2.HttpException) {
+                    // Server lama tanpa endpoint checkout (404) -> fallback loop satuan.
+                    // Error lain (timeout dsb) JANGAN fallback: request mungkin sudah
+                    // masuk server, loop ulang = booking ganda.
+                    if (e.code() != 404) throw e
+                }
+
+                var successCount = 0
+                if (batchOk) {
+                    successCount = itemsToCheckout.size
+                } else {
+                    // Fallback kompatibilitas: server lama, kirim satu per satu.
+                    for (item in itemsToCheckout) {
+                        val response = RetrofitInstance.api.createBooking(
+                            mapOf(
+                                "user_id" to userId,
+                                "test_id" to item.test.id,
+                                "booking_date" to item.bookingDate,
+                                "booking_time" to item.bookingTime,
+                                "clinic_name" to item.clinicName,
+                                "status" to "Menunggu",
+                                "result_status" to "Menunggu Hasil",
+                                "referral_photo" to if (item.hasDoctorReferral) "present" else null
+                            )
+                        )
+                        if (response.isSuccessful) {
+                            successCount++
+                        }
                     }
                 }
                 if (successCount > 0) {

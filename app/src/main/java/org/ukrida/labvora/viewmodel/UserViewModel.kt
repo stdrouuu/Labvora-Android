@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import org.ukrida.labvora.data.model.User
 import org.ukrida.labvora.data.repository.UserRepository
+import org.ukrida.labvora.util.compressImageForUpload
+import org.ukrida.labvora.util.deleteCompressedTemp
 import java.io.File
 
 class UserViewModel(private val repo: UserRepository) : ViewModel() {
@@ -167,10 +169,13 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
         onError: (String) -> Unit = {}
     ) {
         viewModelScope.launch {
+            var toUpload: File? = null
             try {
                 var finalUser = user
                 if (photoFile != null) {
-                    val up = repo.uploadProfilePhoto(photoFile, user.id)
+                    // PERF: compress dulu di HP (upload ~1-3 dtk, bukan belasan detik)
+                    toUpload = compressImageForUpload(photoFile)
+                    val up = repo.uploadProfilePhoto(toUpload, user.id)
                     if (!up.success || up.filename.isNullOrBlank()) {
                         throw Exception(up.message ?: "Upload foto gagal")
                     }
@@ -187,6 +192,8 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
             } catch (e: Exception) {
                 e.printStackTrace()
                 onError("Gagal menyimpan foto/profil. Periksa koneksi internet Anda.")
+            } finally {
+                deleteCompressedTemp(toUpload, photoFile)
             }
         }
     }
@@ -201,10 +208,13 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
         viewModelScope.launch {
             isRegistering.value = true
             registerError.value = null
+            var toUpload: File? = null
             try {
                 var finalUser = user
                 if (photoFile != null) {
-                    val up = repo.uploadProfilePhoto(photoFile, null)
+                    // PERF: compress dulu di HP (upload ~1-3 dtk, bukan belasan detik)
+                    toUpload = compressImageForUpload(photoFile)
+                    val up = repo.uploadProfilePhoto(toUpload, null)
                     if (!up.success || up.filename.isNullOrBlank()) {
                         throw Exception(up.message ?: "Upload foto gagal")
                     }
@@ -227,6 +237,8 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
                 val errMsg = "Registrasi gagal. Periksa koneksi internet Anda."
                 registerError.value = errMsg
                 onError(errMsg)
+            } finally {
+                deleteCompressedTemp(toUpload, photoFile)
             }
         }
     }

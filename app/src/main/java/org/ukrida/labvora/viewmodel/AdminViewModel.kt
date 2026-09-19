@@ -14,12 +14,19 @@ class AdminViewModel : ViewModel() {
     // Mock initial data
     private val _bookings = mutableStateOf<List<AdminBooking>>(emptyList())
 
+    // PERF: cegah tembakan ganda (3 layar admin memanggil getBookings saat dibuka).
+    private var isFetchingBookings = false
+
     fun getBookings() {
+        if (isFetchingBookings) return
         viewModelScope.launch {
+            isFetchingBookings = true
             try {
                 _bookings.value = org.ukrida.labvora.data.api.RetrofitInstance.api.getBookings()
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                isFetchingBookings = false
             }
         }
     }

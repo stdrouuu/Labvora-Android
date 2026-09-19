@@ -74,6 +74,13 @@ interface ApiService {
         @Body request: Map<String, @JvmSuppressWildcards Any?>
     ): Response<Unit>
 
+    // PERF: checkout batch — N item keranjang dalam 1 request (server: 1 transaction).
+    // Endpoint lama createBooking tetap ada sebagai fallback bila server belum update.
+    @POST(value = "bookings.php?action=checkout")
+    suspend fun checkoutBatch(
+        @Body request: Map<String, @JvmSuppressWildcards Any?>
+    ): Response<CheckoutBatchResponse>
+
     @POST(value = "bookings.php?action=update_status")
     suspend fun updateBookingStatus(
         @Body request: Map<String, @JvmSuppressWildcards Any>
@@ -90,3 +97,12 @@ interface ApiService {
         @Query("booking_id") bookingId: Int
     ): Map<String, String?>
 }
+
+// Response endpoint checkout batch. Field opsional agar kompatibel bila server lama
+// menjawab bentuk lain (fallback di CartViewModel menangani sisanya).
+data class CheckoutBatchResponse(
+    val success: Boolean = false,
+    val inserted: Int = 0,
+    val ids: List<Int> = emptyList(),
+    val message: String? = null
+)

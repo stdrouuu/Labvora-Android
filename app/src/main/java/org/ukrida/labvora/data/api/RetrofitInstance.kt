@@ -1,6 +1,7 @@
 // Singleton untuk konfigurasi Retrofit, menentukan Base URL dan Converter
 package org.ukrida.labvora.data.api
 
+import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -18,8 +19,14 @@ object RetrofitInstance {
     val uploadsBaseUrl: String
         get() = BASE_URL.substringBefore("/routes/") + "/uploads/"
 
-    // Timeout 30s agar tahan hosting shared (cPanel) yang kadang slow,
-    // tanpa ini default 10s -> ANR/crash saat closed testing.
+    // PERF:
+    // - connect 10s (dulu 30s): konek >10s = jaringan/server bermasalah,
+    //   gagal cepat lebih baik daripada UI macet 30 detik.
+    // - read/write tetap 30s: upload foto & respons hosting lambat butuh ruang.
+    // - retryOnConnectionFailure = false (dulu true): retry otomatis request POST
+    //   yang gagal di tengah jalan bisa bikin BOOKING GANDA di server.
+    // - ConnectionPool keep-alive: request berurutan pakai ulang koneksi TLS,
+    //   hemat handshake tiap request.
     private val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -31,10 +38,11 @@ object RetrofitInstance {
                 }
                 chain.proceed(requestBuilder.build())
             }
-            .connectTimeout(30, TimeUnit.SECONDS)
+            .connectionPool(ConnectionPool(5, 5, TimeUnit.MINUTES))
+            .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
-            .retryOnConnectionFailure(true)
+            .retryOnConnectionFailure(false)
             .build()
     }
 

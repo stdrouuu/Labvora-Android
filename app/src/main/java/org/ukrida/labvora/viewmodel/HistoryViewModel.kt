@@ -9,6 +9,8 @@ import org.ukrida.labvora.data.model.TestHistoryItem
 
 class HistoryViewModel : ViewModel() {
 
+    private var isFetching = false
+
     private val _historyList = mutableStateOf<List<TestHistoryItem>>(emptyList())
     val historyList: State<List<TestHistoryItem>> = _historyList
 
@@ -41,7 +43,10 @@ class HistoryViewModel : ViewModel() {
     }
 
     fun getHistoryList(userId: Int) {
+        // PERF: cegah tembakan ganda (recompose cepat = request dobel).
+        if (isFetching) return
         viewModelScope.launch {
+            isFetching = true
             try {
                 val list = org.ukrida.labvora.data.api.RetrofitInstance.api.getUserBookings(userId)
                 // Filter only completed bookings for history list
@@ -52,6 +57,8 @@ class HistoryViewModel : ViewModel() {
                 _pendingOrders.value = list.filter { it.status != "Selesai" }
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                isFetching = false
             }
         }
     }
