@@ -70,7 +70,8 @@ class AdminViewModel : ViewModel() {
     // Derived Statistics
     val totalBookings: Int get() = _bookings.value.size
     val totalPending: Int get() = _bookings.value.count { it.status == "Menunggu" }
-    val totalResultQueue: Int get() = _bookings.value.count { it.status == "Sedang diuji" && it.resultStatus == "Menunggu Hasil" }
+    val totalConfirmed: Int get() = _bookings.value.count { it.status == "Dikonfirmasi" }
+    val totalResultQueue: Int get() = totalConfirmed
     val totalTesting: Int get() = _bookings.value.count { it.status == "Sedang diuji" }
     val totalSuccess: Int get() = _bookings.value.count { it.status == "Selesai" }
 

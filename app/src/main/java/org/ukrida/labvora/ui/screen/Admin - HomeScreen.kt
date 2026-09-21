@@ -246,13 +246,13 @@ fun AdminHomeScreen(
                     // Antrean Hasil
                     StatGridItem(
                         title = "Antrean Hasil",
-                        value = viewModel.totalResultQueue.toString(),
+                        value = viewModel.totalConfirmed.toString(),
                         tint = Color(0xFF3B82F6),
                         backgroundColor = Color(0xFFEFF6FF),
                         icon = Icons.AutoMirrored.Filled.Assignment,
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            viewModel.activeStatusFilter.value = "Sedang diuji"
+                            viewModel.activeStatusFilter.value = "Dikonfirmasi"
                             navController.navigate("admin-order") {
                                 popUpTo("admin-home") { saveState = true }
                                 launchSingleTop = true

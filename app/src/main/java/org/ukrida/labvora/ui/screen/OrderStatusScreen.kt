@@ -615,23 +615,13 @@ fun OrderStatusCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
-            // Top Row: Booking ID & Status Badge
+            // Top Row: Status Badges
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "No. Booking #${order.id}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF4B5563)
-                    )
+                Box(modifier = Modifier.weight(1f)) {
                     if (showNewPill || showUpdatedPill) {
                         Text(
                             text = if (showNewPill) "Terbaru dipesan" else "Status diperbarui",
@@ -696,8 +686,15 @@ fun OrderStatusCard(
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
+                val timeDisplay = when {
+                    !order.bookingTime.isNullOrBlank() -> {
+                        val t = order.bookingTime.trim()
+                        if (t.startsWith("Jam", ignoreCase = true)) " · $t" else " · Jam $t"
+                    }
+                    else -> ""
+                }
                 Text(
-                    text = "${order.date} · Jam ${if (!order.bookingTime.isNullOrBlank()) order.bookingTime else "14:00"}",
+                    text = "${order.date}$timeDisplay",
                     fontSize = 12.sp,
                     color = Color(0xFF6B7280)
                 )
