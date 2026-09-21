@@ -615,13 +615,26 @@ fun OrderStatusCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
-            // Top Row: Status Badges
+            // Test Title & Status Badges (Sejajar dan Simetris)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = displayTitle,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF1F2937),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     if (showNewPill || showUpdatedPill) {
                         Text(
                             text = if (showNewPill) "Terbaru dipesan" else "Status diperbarui",
@@ -631,31 +644,21 @@ fun OrderStatusCard(
                             maxLines = 1,
                             modifier = Modifier
                                 .background(Color(0xFFF65C63), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                                .padding(horizontal = 7.dp, vertical = 4.dp)
                         )
                     }
+
+                    Text(
+                        text = order.status,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = statusFg,
+                        modifier = Modifier
+                            .background(statusBg, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
                 }
-
-                Text(
-                    text = order.status,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = statusFg,
-                    modifier = Modifier
-                        .background(statusBg, RoundedCornerShape(8.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
-                )
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Test Title
-            Text(
-                text = displayTitle,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF1F2937)
-            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
