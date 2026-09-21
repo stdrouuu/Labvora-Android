@@ -37,6 +37,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
+import org.ukrida.labvora.ui.components.LabvoraPullToRefreshBox
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminInputScreen(
@@ -88,14 +90,20 @@ fun AdminInputScreen(
             AdminBottomNav(navController = navController, currentRoute = "admin-input")
         }
     ) { padding ->
-        Column(
+        LabvoraPullToRefreshBox(
+            isRefreshing = viewModel.isRefreshing.value,
+            onRefresh = { viewModel.getBookings(forceRefresh = true) },
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF4F7F6))
                 .padding(padding)
-                .padding(horizontal = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF4F7F6))
+                    .padding(horizontal = 16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
 
             EducationDisclaimerBanner(
                 text = stringResource(org.ukrida.labvora.R.string.disclaimer_admin)
@@ -142,6 +150,7 @@ fun AdminInputScreen(
                     }
                 }
             }
+        }
         }
     }
 

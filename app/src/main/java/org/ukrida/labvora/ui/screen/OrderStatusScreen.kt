@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.*
 import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 import org.ukrida.labvora.ui.components.EducationDisclaimerFooter
+import org.ukrida.labvora.ui.components.LabvoraPullToRefreshBox
 import org.ukrida.labvora.util.SeenOrderStore
 import org.ukrida.labvora.ui.components.displayClinicName
 import androidx.compose.runtime.Composable
@@ -171,12 +172,22 @@ fun OrderStatusScreen(
             )
         }
     ) { paddingValues ->
-        Box(
+        LabvoraPullToRefreshBox(
+            isRefreshing = historyViewModel.isRefreshing.value,
+            onRefresh = {
+                if (userId > 0) {
+                    historyViewModel.getHistoryList(userId, forceRefresh = true)
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF9FAFB))
                 .padding(paddingValues)
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF9FAFB))
+            ) {
             if (allOrders.isEmpty()) {
                 Column(
                     modifier = Modifier
@@ -467,7 +478,9 @@ fun OrderStatusScreen(
             }
         }
     }
+    }
 }
+
 
 private fun monthNameToNumber(token: String): String? {
     return when (token.lowercase(Locale("id", "ID")).trim()) {

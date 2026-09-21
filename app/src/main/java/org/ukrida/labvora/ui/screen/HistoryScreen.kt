@@ -38,6 +38,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 
+import org.ukrida.labvora.ui.components.LabvoraPullToRefreshBox
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
@@ -94,12 +96,22 @@ fun HistoryScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LabvoraPullToRefreshBox(
+            isRefreshing = viewModel.isRefreshing.value,
+            onRefresh = {
+                if (userId > 0) {
+                    viewModel.getHistoryList(userId, forceRefresh = true)
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFFAFAFA))
                 .padding(paddingValues)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFFAFAFA))
+            ) {
             // Search Bar Section
             Row(
                 modifier = Modifier
@@ -221,6 +233,7 @@ fun HistoryScreen(
                     }
                 }
             }
+        }
         }
     }
 }

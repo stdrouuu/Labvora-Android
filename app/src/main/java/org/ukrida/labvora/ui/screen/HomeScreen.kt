@@ -63,6 +63,8 @@ import org.ukrida.labvora.viewmodel.HistoryViewModel
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
 
+import org.ukrida.labvora.ui.components.LabvoraPullToRefreshBox
+
 @Composable
 fun HomeScreen(
     userViewModel: UserViewModel,
@@ -101,19 +103,28 @@ fun HomeScreen(
         SeenOrderStore.getFreshIds(context, homeUserId, items).size
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFAFAFA))
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = 24.dp)
+    LabvoraPullToRefreshBox(
+        isRefreshing = historyViewModel.isRefreshing.value,
+        onRefresh = {
+            if (homeUserId > 0) {
+                historyViewModel.getHistoryList(homeUserId, forceRefresh = true)
+            }
+        },
+        modifier = Modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = 560.dp)
-                .align(Alignment.CenterHorizontally)
+                .fillMaxSize()
+                .background(Color(0xFFFAFAFA))
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 560.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
         // Welcome Header Section
         Column(
             modifier = Modifier
@@ -524,6 +535,7 @@ fun HomeScreen(
         }
         }
     }
+    }
 
     // ================= promo detail modal — semua iklan wajib ada output =================
     if (selectedPromoIndex != null) {
@@ -606,22 +618,33 @@ fun QuickActionButton(
                     )
                 }
             }
-            // Badge merah jumlah pesanan baru — pola sama seperti badge keranjang
+            // Badge merah jumlah pesanan baru — berbentuk bulat sempurna
             if (badgeCount > 0) {
+                val badgeText = if (badgeCount > 99) "99+" else badgeCount.toString()
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .offset(x = 6.dp, y = (-6).dp)
-                        .sizeIn(minWidth = 20.dp, minHeight = 20.dp)
-                        .background(Color(0xFFF75F65), CircleShape)
-                        .padding(horizontal = 5.dp, vertical = 1.dp),
+                        .then(
+                            if (badgeText.length <= 1) {
+                                Modifier.size(20.dp)
+                            } else {
+                                Modifier
+                                    .height(20.dp)
+                                    .widthIn(min = 20.dp)
+                                    .padding(horizontal = 4.dp)
+                            }
+                        )
+                        .background(Color(0xFFF75F65), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (badgeCount > 99) "99+" else badgeCount.toString(),
+                        text = badgeText,
                         color = Color.White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
+                        lineHeight = 10.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         maxLines = 1
                     )
                 }

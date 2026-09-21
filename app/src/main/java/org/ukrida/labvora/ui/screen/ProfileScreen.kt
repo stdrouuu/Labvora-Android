@@ -48,6 +48,8 @@ import org.ukrida.labvora.viewmodel.BookingViewModel
 import org.ukrida.labvora.viewmodel.HistoryViewModel
 import java.io.File
 
+import org.ukrida.labvora.ui.components.LabvoraPullToRefreshBox
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -116,40 +118,29 @@ fun ProfileScreen(
             .fillMaxSize()
             .background(Color(0xFFFAFAFA))
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
+        // Scrollable Content
+        LabvoraPullToRefreshBox(
+            isRefreshing = historyViewModel.isRefreshing.value,
+            onRefresh = {
+                currentUser?.id?.let { userId ->
+                    if (userId > 0) {
+                        historyViewModel.getHistoryList(userId, forceRefresh = true)
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxSize()
         ) {
-            // Sticky Top Bar
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .height(64.dp)
-                    .background(Color(0xFFFAFAFA))
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Profil",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF1E293B)
-                )
-            }
-
-            // Scrollable Content
             Column(
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp)
-                    .padding(bottom = 32.dp)
+                    .padding(top = 16.dp, bottom = 32.dp)
                     .widthIn(max = 640.dp)
-                    .align(Alignment.CenterHorizontally),
+                    .align(Alignment.TopCenter),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Profile Avatar Card
+                    // Profile Avatar Card
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -485,16 +476,15 @@ fun ProfileScreen(
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
+            }
         }
-    }
 
     // Toast sukses edit — ponytail: di bawah top nav, overlay konten
     if (showUpdatedToast) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(top = 72.dp, start = 20.dp, end = 20.dp),
+                .padding(top = 16.dp, start = 20.dp, end = 20.dp),
             contentAlignment = Alignment.TopCenter
         ) {
         Box(

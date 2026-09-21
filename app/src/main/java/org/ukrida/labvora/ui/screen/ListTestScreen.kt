@@ -46,6 +46,11 @@ import androidx.compose.ui.unit.sp
 import org.ukrida.labvora.viewmodel.BookingViewModel
 import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 
+import org.ukrida.labvora.ui.components.LabvoraPullToRefreshBox
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+
 data class LabTest(
     val id: Int,
     val title: String,
@@ -65,6 +70,8 @@ fun ListTestScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showHelpDialog by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     val allTests = remember {
         listOf(
@@ -111,23 +118,34 @@ fun ListTestScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFAFAFA))
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = 24.dp)
+    LabvoraPullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                isRefreshing = true
+                delay(600)
+                isRefreshing = false
+            }
+        },
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Search & Header Section
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .fillMaxSize()
+                .background(Color(0xFFFAFAFA))
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp)
         ) {
-            TextField(
-                value = searchQuery,
+            // Search & Header Section
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextField(
+                    value = searchQuery,
                 onValueChange = { searchQuery = it },
                 placeholder = { Text("Cari tes lab...", color = Color(0xFF9CA3AF), fontSize = 14.sp) },
                 leadingIcon = {
@@ -225,6 +243,7 @@ fun ListTestScreen(
             // Need help card (static - Disembunyikan sementara)
             // NeedHelpCard(onContactClick = { showHelpDialog = true })
         }
+    }
     }
 
     if (showHelpDialog) {

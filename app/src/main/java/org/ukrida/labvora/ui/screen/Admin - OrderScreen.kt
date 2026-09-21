@@ -46,6 +46,8 @@ import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 import org.ukrida.labvora.viewmodel.AdminViewModel
 import java.util.*
 
+import org.ukrida.labvora.ui.components.LabvoraPullToRefreshBox
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminOrderScreen(
@@ -117,17 +119,23 @@ fun AdminOrderScreen(
             AdminBottomNav(navController = navController, currentRoute = "admin-order")
         }
     ) { padding ->
-        Column(
+        LabvoraPullToRefreshBox(
+            isRefreshing = viewModel.isRefreshing.value,
+            onRefresh = { viewModel.getBookings(forceRefresh = true) },
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF4F7F6))
                 .padding(padding)
-                .padding(horizontal = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF4F7F6))
+                    .padding(horizontal = 16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Search inputs panel
-            Card(
+                // Search inputs panel
+                Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -298,7 +306,14 @@ fun AdminOrderScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Disclaimer banner di antara pills status dan pesanan di bawahnya
+            EducationDisclaimerBanner(
+                text = stringResource(org.ukrida.labvora.R.string.disclaimer_admin)
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Booking Count Header
             Text(
@@ -334,12 +349,7 @@ fun AdminOrderScreen(
                             tint = Color.LightGray,
                             modifier = Modifier.size(48.dp)
                         )
-            Spacer(modifier = Modifier.height(12.dp))
-
-            EducationDisclaimerBanner(
-                text = stringResource(org.ukrida.labvora.R.string.disclaimer_admin)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "Belum ada pesanan yang cocok.",
                             fontSize = 12.sp,
@@ -362,6 +372,7 @@ fun AdminOrderScreen(
                     }
                 }
             }
+        }
         }
     }
 

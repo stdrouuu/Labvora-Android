@@ -15,8 +15,8 @@ android {
         applicationId = "org.ukrida.labvora"
         minSdk = 27
         targetSdk = 36
-        versionCode = 16
-        versionName = "1.1.0"
+        versionCode = 18
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

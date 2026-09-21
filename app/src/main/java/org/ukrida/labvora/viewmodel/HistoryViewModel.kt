@@ -33,6 +33,8 @@ class HistoryViewModel : ViewModel() {
     // yang baru dipesan. Dibersihkan saat Status Pesanan ditinggalkan.
     var highlightAboveId = mutableStateOf<Int?>(null)
 
+    val isRefreshing = mutableStateOf(false)
+
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
     }
@@ -42,11 +44,12 @@ class HistoryViewModel : ViewModel() {
         _searchQuery.value = ""
     }
 
-    fun getHistoryList(userId: Int) {
+    fun getHistoryList(userId: Int, forceRefresh: Boolean = false) {
         // PERF: cegah tembakan ganda (recompose cepat = request dobel).
-        if (isFetching) return
+        if (isFetching && !forceRefresh) return
         viewModelScope.launch {
             isFetching = true
+            if (forceRefresh) isRefreshing.value = true
             try {
                 val list = org.ukrida.labvora.data.api.RetrofitInstance.api.getUserBookings(userId)
                 // Filter only completed bookings for history list
@@ -59,6 +62,7 @@ class HistoryViewModel : ViewModel() {
                 e.printStackTrace()
             } finally {
                 isFetching = false
+                isRefreshing.value = false
             }
         }
     }

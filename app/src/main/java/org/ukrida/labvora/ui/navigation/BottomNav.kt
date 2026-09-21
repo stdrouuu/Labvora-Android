@@ -33,11 +33,16 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 }
 
 @Composable
-fun BottomNav(navController: NavHostController, role: String) {
+fun BottomNav(
+    navController: NavHostController,
+    role: String,
+    selectedTabRoute: String? = null,
+    onTabSelected: ((String) -> Unit)? = null
+) {
     val items = listOf(Screen.Home, Screen.ListTest, Screen.User)
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
+    val currentRoute = selectedTabRoute ?: (navBackStackEntry?.destination?.route ?: Screen.Home.route)
 
     // ponytail: border = divider 1.dp di atas bar (ganti shadow blur yg bikin blok abu2),
     // background putih cover inset nav agar tak ada celah transparan
@@ -77,27 +82,31 @@ fun BottomNav(navController: NavHostController, role: String) {
                             interactionSource = interactionSource,
                             indication = null
                         ) {
-                            val currentDest = navController.currentBackStackEntry?.destination?.route
-                            if (screen == Screen.ListTest && currentDest == "cart") {
-                                navController.popBackStack(Screen.ListTest.route, false)
-                            } else if (screen == Screen.Home && currentDest != Screen.Home.route) {
-                                val popped = navController.popBackStack(Screen.Home.route, false)
-                                if (!popped) {
-                                    navController.navigate(Screen.Home.route) {
+                            if (onTabSelected != null) {
+                                onTabSelected(screen.route)
+                            } else {
+                                val currentDest = navController.currentBackStackEntry?.destination?.route
+                                if (screen == Screen.ListTest && currentDest == "cart") {
+                                    navController.popBackStack(Screen.ListTest.route, false)
+                                } else if (screen == Screen.Home && currentDest != Screen.Home.route) {
+                                    val popped = navController.popBackStack(Screen.Home.route, false)
+                                    if (!popped) {
+                                        navController.navigate(Screen.Home.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                } else if (currentDest != screen.route) {
+                                    navController.navigate(screen.route) {
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
                                         }
                                         launchSingleTop = true
                                         restoreState = true
                                     }
-                                }
-                            } else if (currentDest != screen.route) {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
                             }
                         },

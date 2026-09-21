@@ -34,6 +34,10 @@ import org.ukrida.labvora.viewmodel.HistoryViewModel
 import org.ukrida.labvora.viewmodel.ResultViewModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import kotlinx.coroutines.launch
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
@@ -52,6 +56,10 @@ fun MainScreen(
     val resultViewModel = remember(userId) { ResultViewModel() }
     val cartViewModel = remember(userId) { CartViewModel() }
     val navBackStackEntry by innerNavController.currentBackStackEntryAsState()
+
+    // 3 Halaman Utama User mendukung Swipe Navigation (HorizontalPager)
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(userId) {
         if (userId > 0) {
@@ -82,8 +90,22 @@ fun MainScreen(
             historyViewModel.getHistoryList(userId)
         }
     }
-    val currentRoute = navBackStackEntry?.destination?.route ?: "home"
-    val showTopBar = currentRoute == "home" || currentRoute == "listtest"
+    val currentRoute = navBackStackEntry?.destination?.route ?: "main_tabs"
+
+    // Sinkronisasi tab aktif BottomNav
+    val activeTabRoute = when {
+        currentRoute == "main_tabs" -> {
+            when (pagerState.currentPage) {
+                0 -> "home"
+                1 -> "listtest"
+                else -> "user"
+            }
+        }
+        else -> currentRoute
+    }
+
+    // Top Bar ditampilkan di 3 tab utama: Beranda, Tes Lab, dan Profil
+    val showTopBar = currentRoute == "main_tabs"
 
     Scaffold(
         containerColor = Color.White,
@@ -157,7 +179,25 @@ fun MainScreen(
         // orderstatus, profileedit, faq) sesuai commit lama; privacypolicy route sudah dihapus
         bottomBar = {
             if (currentRoute != "history" && !currentRoute.startsWith("result") && currentRoute != "cart" && currentRoute != "orderstatus" && currentRoute != "profileedit" && currentRoute != "faq") {
-                BottomNav(innerNavController, role)
+                BottomNav(
+                    navController = innerNavController,
+                    role = role,
+                    selectedTabRoute = if (currentRoute == "main_tabs") activeTabRoute else null,
+                    onTabSelected = { targetRoute ->
+                        if (currentRoute != "main_tabs") {
+                            innerNavController.popBackStack("main_tabs", false)
+                        }
+                        val targetPage = when (targetRoute) {
+                            "home" -> 0
+                            "listtest" -> 1
+                            "user" -> 2
+                            else -> 0
+                        }
+                        coroutineScope.launch {
+                            pagerState.scrollToPage(targetPage)
+                        }
+                    }
+                )
             }
         }
 
@@ -165,7 +205,7 @@ fun MainScreen(
 
         NavHost(
             navController = innerNavController,
-            startDestination = "home",
+            startDestination = "main_tabs",
             // ponytail: tanpa animasi slide — bottomBar hide-nya instan,
             // kalau layar pakai slide, ikon hilang duluan & layar nyusul (kelihatan glitch)
             enterTransition = { EnterTransition.None },
@@ -178,37 +218,69 @@ fun MainScreen(
             )
         ) {
 
-            composable("home") {
-                HomeScreen(
-                    userViewModel = userViewModel,
-                    bookingViewModel = bookingViewModel,
-                    historyViewModel = historyViewModel,
-                    onNavigateToListTest = {
-                        innerNavController.navigate("listtest") {
-                            popUpTo(innerNavController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
+            // Main Swipeable Pager for 3 Primary Tabs (Beranda, Tes Lab, Profil)
+            composable("main_tabs") {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    when (page) {
+                        0 -> {
+                            HomeScreen(
+                                userViewModel = userViewModel,
+                                bookingViewModel = bookingViewModel,
+                                historyViewModel = historyViewModel,
+                                onNavigateToListTest = {
+                                    coroutineScope.launch {
+                                        pagerState.scrollToPage(1)
+                                    }
+                                },
+                                onNavigateToDetail = { testId ->
+                                    innerNavController.navigate("detailtest/$testId")
+                                },
+                                onNavigateToHistory = {
+                                    innerNavController.navigate("history")
+                                },
+                                onNavigateToResult = { bookingId, testId, date ->
+                                    val dateArg = if (date != null) "?date=${android.net.Uri.encode(date)}" else ""
+                                    innerNavController.navigate("result/$bookingId/$testId$dateArg")
+                                },
+                                onNavigateToProfile = {
+                                    coroutineScope.launch {
+                                        pagerState.scrollToPage(2)
+                                    }
+                                },
+                                onNavigateToOrderStatus = {
+                                    innerNavController.navigate("orderstatus")
+                                }
+                            )
                         }
-                    },
-                    onNavigateToDetail = { testId ->
-                        innerNavController.navigate("detailtest/$testId")
-                    },
-                    onNavigateToHistory = {
-                        innerNavController.navigate("history")
-                    },
-                    onNavigateToResult = { bookingId, testId, date ->
-                        val dateArg = if (date != null) "?date=${android.net.Uri.encode(date)}" else ""
-                        innerNavController.navigate("result/$bookingId/$testId$dateArg")
-                    },
-                    onNavigateToProfile = {
-                        innerNavController.navigate("user")
-                    },
-                    onNavigateToOrderStatus = {
-                        innerNavController.navigate("orderstatus")
+                        1 -> {
+                            ListTestScreen(
+                                bookingViewModel = bookingViewModel,
+                                onNavigateToDetail = { testId ->
+                                    innerNavController.navigate("detailtest/$testId")
+                                }
+                            )
+                        }
+                        2 -> {
+                            ProfileScreen(
+                                viewModel = userViewModel,
+                                navController = innerNavController,
+                                bookingViewModel = bookingViewModel,
+                                historyViewModel = historyViewModel,
+                                onNavigateToHistory = {
+                                    innerNavController.navigate("history")
+                                },
+                                onNavigateToOrderStatus = {
+                                    innerNavController.navigate("orderstatus")
+                                },
+                                onLogout = onLogout,
+                                onDeleteAccount = onDeleteAccount
+                            )
+                        }
                     }
-                )
+                }
             }
 
             composable("history") {
@@ -253,30 +325,25 @@ fun MainScreen(
                 )
             }
 
+            composable("home") {
+                LaunchedEffect(Unit) {
+                    innerNavController.popBackStack("main_tabs", false)
+                    pagerState.scrollToPage(0)
+                }
+            }
+
             composable("listtest") {
-                ListTestScreen(
-                    bookingViewModel = bookingViewModel,
-                    onNavigateToDetail = { testId ->
-                        innerNavController.navigate("detailtest/$testId")
-                    }
-                )
+                LaunchedEffect(Unit) {
+                    innerNavController.popBackStack("main_tabs", false)
+                    pagerState.scrollToPage(1)
+                }
             }
 
             composable("user") {
-                ProfileScreen(
-                    viewModel = userViewModel,
-                    navController = innerNavController,
-                    bookingViewModel = bookingViewModel,
-                    historyViewModel = historyViewModel,
-                    onNavigateToHistory = {
-                        innerNavController.navigate("history")
-                    },
-                    onNavigateToOrderStatus = {
-                        innerNavController.navigate("orderstatus")
-                    },
-                    onLogout = onLogout,
-                    onDeleteAccount = onDeleteAccount
-                )
+                LaunchedEffect(Unit) {
+                    innerNavController.popBackStack("main_tabs", false)
+                    pagerState.scrollToPage(2)
+                }
             }
 
             composable("profileedit") {

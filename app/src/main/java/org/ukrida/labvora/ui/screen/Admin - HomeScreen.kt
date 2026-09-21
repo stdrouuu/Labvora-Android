@@ -40,6 +40,8 @@ import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 import org.ukrida.labvora.viewmodel.AdminViewModel
 import java.util.Calendar
 
+import org.ukrida.labvora.ui.components.LabvoraPullToRefreshBox
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminHomeScreen(
@@ -83,15 +85,21 @@ fun AdminHomeScreen(
             AdminBottomNav(navController = navController, currentRoute = "admin-home")
         }
     ) { padding ->
-        Column(
+        LabvoraPullToRefreshBox(
+            isRefreshing = viewModel.isRefreshing.value,
+            onRefresh = { viewModel.getBookings(forceRefresh = true) },
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF4F7F6))
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF4F7F6))
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             val currentDate = remember {
                 val calendar = Calendar.getInstance()
                 val dayNamesIndo = listOf("Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu")
@@ -329,6 +337,7 @@ fun AdminHomeScreen(
                     RecentBookingItem(booking = booking)
                 }
             }
+        }
         }
     }
 

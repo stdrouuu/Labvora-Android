@@ -50,9 +50,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import org.ukrida.labvora.data.model.CartItem
 import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
+import org.ukrida.labvora.ui.components.LabvoraPullToRefreshBox
 import org.ukrida.labvora.ui.components.displayClinicName
 import org.ukrida.labvora.viewmodel.CartViewModel
 import org.ukrida.labvora.viewmodel.UserViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,6 +73,8 @@ fun CartScreen(
 
     var editingCartItem by remember { mutableStateOf<CartItem?>(null) }
     var deletingCartItem by remember { mutableStateOf<CartItem?>(null) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(cartViewModel.toastMessage.value) {
         cartViewModel.toastMessage.value?.let { msg ->
@@ -209,12 +213,27 @@ fun CartScreen(
             }
         }
     ) { paddingValues ->
-        Box(
+        LabvoraPullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                coroutineScope.launch {
+                    isRefreshing = true
+                    if (userId > 0) {
+                        cartViewModel.initCartForUser(context, userId)
+                    }
+                    kotlinx.coroutines.delay(500)
+                    isRefreshing = false
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF9FAFB))
                 .padding(paddingValues)
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF9FAFB))
+            ) {
             if (cartItems.isEmpty()) {
                 Column(
                     modifier = Modifier
@@ -361,15 +380,16 @@ fun CartScreen(
                                     )
                                     Spacer(modifier = Modifier.height(12.dp))
                                     EducationDisclaimerBanner(
-                                        text = stringResource(org.ukrida.labvora.R.string.disclaimer_cart)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+                                         text = stringResource(org.ukrida.labvora.R.string.disclaimer_cart)
+                                     )
+                                 }
+                             }
+                         }
+                     }
+                 }
+             }
+         }
+     }
     }
 
     // Modal Edit Jadwal (Gambar 3)
