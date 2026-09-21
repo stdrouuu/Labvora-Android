@@ -615,38 +615,60 @@ fun OrderStatusCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
-            // Test Title & Status Badges (Sejajar dan Simetris)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            // Header: Status Pills (Top Left) & Order Status Badge (Top Right)
+            if (showNewPill || showUpdatedPill) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (showNewPill) "Terbaru dipesan" else "Status diperbarui",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .background(Color(0xFFF65C63), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 7.dp, vertical = 4.dp)
+                    )
+
+                    Text(
+                        text = order.status,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = statusFg,
+                        modifier = Modifier
+                            .background(statusBg, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Test Title
                 Text(
                     text = displayTitle,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF1F2937),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)
+                    modifier = Modifier.fillMaxWidth()
                 )
-
+            } else {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (showNewPill || showUpdatedPill) {
-                        Text(
-                            text = if (showNewPill) "Terbaru dipesan" else "Status diperbarui",
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            maxLines = 1,
-                            modifier = Modifier
-                                .background(Color(0xFFF65C63), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 7.dp, vertical = 4.dp)
-                        )
-                    }
+                    Text(
+                        text = displayTitle,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF1F2937),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp)
+                    )
 
                     Text(
                         text = order.status,
