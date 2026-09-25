@@ -6,7 +6,7 @@ plugins {
 android {
     namespace = "org.ukrida.labvora"
     compileSdk {
-        version = release(36) {
+        version = release(36) { 
             minorApiLevel = 1
         }
     }
@@ -15,8 +15,8 @@ android {
         applicationId = "org.ukrida.labvora"
         minSdk = 27
         targetSdk = 36
-        versionCode = 19
-        versionName = "1.1.2"
+        versionCode = 21
+        versionName = "1.1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
