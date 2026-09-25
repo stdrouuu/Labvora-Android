@@ -1,6 +1,7 @@
 package org.ukrida.labvora.ui.screen
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -53,6 +54,7 @@ import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 import org.ukrida.labvora.ui.components.LabvoraPullToRefreshBox
 import org.ukrida.labvora.ui.components.displayClinicName
 import org.ukrida.labvora.viewmodel.CartViewModel
+import org.ukrida.labvora.viewmodel.HistoryViewModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
@@ -61,15 +63,31 @@ import kotlinx.coroutines.launch
 fun CartScreen(
     cartViewModel: CartViewModel,
     userViewModel: UserViewModel,
+    historyViewModel: HistoryViewModel? = null,
     onBack: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToListTest: () -> Unit = {},
     onNavigateToHome: () -> Unit = {},
     onNavigateToOrderStatus: () -> Unit = onNavigateToProfile
 ) {
+    BackHandler {
+        onBack()
+    }
+
     val context = LocalContext.current
     val cartItems = cartViewModel.cartItems.value
     val userId = userViewModel.currentUser.value?.id ?: 0
+
+    LaunchedEffect(userId) {
+        if (userId > 0) {
+            historyViewModel?.getHistoryList(userId)
+        }
+    }
+
+    val activeOrderCount = historyViewModel?.activeOrderCount ?: 0
+    val remainingQuota = historyViewModel?.remainingOrderQuota ?: 3
+    var showOrderLimitDialog by remember { mutableStateOf(false) }
+    var orderLimitDialogMessage by remember { mutableStateOf("") }
 
     var editingCartItem by remember { mutableStateOf<CartItem?>(null) }
     var deletingCartItem by remember { mutableStateOf<CartItem?>(null) }
@@ -181,7 +199,16 @@ fun CartScreen(
 
                         Button(
                             onClick = {
-                                cartViewModel.checkoutCheckedItems(userId, context)
+                                val checked = cartViewModel.checkedCount
+                                if (activeOrderCount >= 3) {
+                                    orderLimitDialogMessage = "Anda telah mencapai batas maksimal 3 pesanan aktif yang belum selesai. Anda baru dapat melakukan pemesanan kembali setelah pesanan sebelumnya diselesaikan oleh admin."
+                                    showOrderLimitDialog = true
+                                } else if (checked > remainingQuota) {
+                                    orderLimitDialogMessage = "Anda memilih $checked pesanan, sedangkan sisa kuota pemesanan Anda hanya $remainingQuota pesanan lagi (Anda saat ini memiliki $activeOrderCount pesanan yang belum diselesaikan). Silakan pilih maksimal $remainingQuota pesanan untuk checkout."
+                                    showOrderLimitDialog = true
+                                } else {
+                                    cartViewModel.checkoutCheckedItems(userId, context, maxAllowedQuota = remainingQuota)
+                                }
                             },
                             enabled = cartViewModel.checkedCount > 0 && !cartViewModel.isCheckingOut.value,
                             colors = ButtonDefaults.buttonColors(
@@ -286,6 +313,53 @@ fun CartScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (activeOrderCount >= 3) Color(0xFFFEF2F2) else Color(0xFFE6F7F5)
+                            ),
+                            border = BorderStroke(
+                                1.dp,
+                                if (activeOrderCount >= 3) Color(0xFFFCA5A5) else Color(0xFF3CB7A6)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = null,
+                                    tint = if (activeOrderCount >= 3) Color(0xFFDC2626) else Color(0xFF3CB7A6),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Column {
+                                    Text(
+                                        text = if (activeOrderCount >= 3)
+                                            "Status Batas Pemesanan: 3 / 3 Tercapai"
+                                        else
+                                            "Status Batas Pemesanan: $activeOrderCount / 3 Aktif",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (activeOrderCount >= 3) Color(0xFF991B1B) else Color(0xFF2C8A7D)
+                                    )
+                                    Text(
+                                        text = if (activeOrderCount >= 3)
+                                            "Anda hanya dapat memesan kembali setelah pesanan sebelumnya diselesaikan."
+                                        else
+                                            "Sisa kuota: Anda dapat memesan maksimal $remainingQuota pesanan lagi.",
+                                        fontSize = 11.sp,
+                                        color = if (activeOrderCount >= 3) Color(0xFFB91C1C) else Color(0xFF3CB7A6),
+                                        lineHeight = 15.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     items(cartItems, key = { it.id }) { item ->
                         CartItemCard(
                             item = item,
@@ -456,6 +530,49 @@ fun CartScreen(
         if (cartViewModel.showCheckoutSuccessModal.value) {
             alertStep = 1
         }
+    }
+
+    // Modal Limit Pesanan Tercapai / Melebihi Kuota
+    if (showOrderLimitDialog) {
+        AlertDialog(
+            onDismissRequest = { showOrderLimitDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = Color(0xFFDC2626),
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Batas Pemesanan",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center
+                )
+            },
+            text = {
+                Text(
+                    text = orderLimitDialogMessage,
+                    fontSize = 13.sp,
+                    color = Color(0xFF4B5563),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 18.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showOrderLimitDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3CB7A6)),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Mengerti", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 
     // Modal Success Checkout (2-Step Alert)

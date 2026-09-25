@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
@@ -60,7 +61,8 @@ fun OrderStatusScreen(
     userViewModel: UserViewModel,
     historyViewModel: HistoryViewModel,
     onBack: () -> Unit,
-    onNavigateToListTest: () -> Unit
+    onNavigateToListTest: () -> Unit,
+    onNavigateToResult: (Int, Int, String?) -> Unit = { _, _, _ -> }
 ) {
     val userId = userViewModel.currentUser.value?.id ?: 0
 
@@ -466,7 +468,8 @@ fun OrderStatusScreen(
                                     order = order,
                                     isNew = freshIds.contains(order.id),
                                     showNewPill = newIds.contains(order.id),
-                                    showUpdatedPill = freshIds.contains(order.id) && !newIds.contains(order.id)
+                                    showUpdatedPill = freshIds.contains(order.id) && !newIds.contains(order.id),
+                                    onNavigateToResult = onNavigateToResult
                                 )
                             }
                             item {
@@ -595,7 +598,8 @@ fun OrderStatusCard(
     order: TestHistoryItem,
     isNew: Boolean = false,
     showNewPill: Boolean = false,
-    showUpdatedPill: Boolean = false
+    showUpdatedPill: Boolean = false,
+    onNavigateToResult: (Int, Int, String?) -> Unit = { _, _, _ -> }
 ) {
     val (statusBg, statusFg) = when (order.status) {
         "Menunggu" -> Color(0xFFFEF3C7) to Color(0xFFD97706)
@@ -787,6 +791,38 @@ fun OrderStatusCard(
 
                 // Timeline Progress Bar (4 Steps)
                 OrderStatusTimeline(currentStatus = order.status)
+
+                // Tombol "Lihat hasil pemeriksaan" khusus untuk pesanan dengan status "Selesai"
+                if (order.status.equals("Selesai", ignoreCase = true)) {
+                    Spacer(modifier = Modifier.height(14.dp))
+                    HorizontalDivider(color = Color(0xFFF3F4F6), thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                onNavigateToResult(order.id, order.testId, order.date)
+                            }
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Lihat hasil pemeriksaan",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF3CB7A6)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "Lihat hasil pemeriksaan",
+                            tint = Color(0xFF3CB7A6),
+                            modifier = Modifier.size(15.dp)
+                        )
+                    }
+                }
             }
         }
     }

@@ -50,11 +50,21 @@ import org.ukrida.labvora.ui.components.EducationDisclaimerFooter
 fun OrderReviewScreen(
     bookingViewModel: BookingViewModel,
     userViewModel: org.ukrida.labvora.viewmodel.UserViewModel,
+    historyViewModel: org.ukrida.labvora.viewmodel.HistoryViewModel? = null,
     onBack: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToHome: () -> Unit = {},
     onNavigateToOrderStatus: () -> Unit = onNavigateToProfile
 ) {
+    val userId = userViewModel.currentUser.value?.id ?: 0
+    LaunchedEffect(userId) {
+        if (userId > 0) {
+            historyViewModel?.getHistoryList(userId)
+        }
+    }
+    val activeCount = historyViewModel?.activeOrderCount ?: 0
+    var showMaxOrdersDialog by remember { mutableStateOf(false) }
+
     BackHandler(enabled = bookingViewModel.isOrderCompleted || bookingViewModel.showSuccessModal) {
         bookingViewModel.resetOrderState()
         onNavigateToHome()
@@ -512,9 +522,13 @@ fun OrderReviewScreen(
                     val isCompleted = bookingViewModel.isOrderCompleted
                     Button(
                         onClick = {
+                            if (activeCount >= 3) {
+                                showMaxOrdersDialog = true
+                                return@Button
+                            }
                             if (!isConfirming && !isCompleted) {
-                                val userId = userViewModel.currentUser.value?.id ?: 0
-                                bookingViewModel.confirmOrder(userId)
+                                val currentUid = userViewModel.currentUser.value?.id ?: 0
+                                bookingViewModel.confirmOrder(currentUid)
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -779,5 +793,47 @@ fun OrderReviewScreen(
                 }
             }
         }
+    }
+
+    if (showMaxOrdersDialog) {
+        AlertDialog(
+            onDismissRequest = { showMaxOrdersDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = Color(0xFFDC2626),
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Batas Pemesanan Tercapai",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center
+                )
+            },
+            text = {
+                Text(
+                    text = "Setiap pengguna hanya dapat memiliki maksimal 3 pesanan aktif yang belum diselesaikan. Anda baru dapat memesan kembali jika salah satu pesanan Anda telah diselesaikan.",
+                    fontSize = 13.sp,
+                    color = Color(0xFF4B5563),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 18.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showMaxOrdersDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3CB7A6)),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Mengerti", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 }

@@ -382,6 +382,8 @@ fun MainScreen(
                 BookScheduleScreen(
                     bookingViewModel = bookingViewModel,
                     cartViewModel = cartViewModel,
+                    historyViewModel = historyViewModel,
+                    userViewModel = userViewModel,
                     onBack = {
                         innerNavController.popBackStack()
                     },
@@ -390,10 +392,7 @@ fun MainScreen(
                     },
                     onNavigateToCart = {
                         innerNavController.navigate("cart") {
-                            val popped = innerNavController.popBackStack("listtest", false)
-                            if (!popped) {
-                                innerNavController.popBackStack("home", false)
-                            }
+                            popUpTo("main_tabs") { inclusive = false }
                         }
                     }
                 )
@@ -403,37 +402,42 @@ fun MainScreen(
                 CartScreen(
                     cartViewModel = cartViewModel,
                     userViewModel = userViewModel,
+                    historyViewModel = historyViewModel,
                     onBack = {
-                        val popped = innerNavController.popBackStack("listtest", false)
+                        val popped = innerNavController.popBackStack("main_tabs", false)
                         if (!popped) {
-                            val poppedHome = innerNavController.popBackStack("home", false)
-                            if (!poppedHome) {
-                                innerNavController.popBackStack()
-                            }
-                        }
-                    },
-                    onNavigateToProfile = {
-                        innerNavController.navigate("user") {
-                            popUpTo("home") { inclusive = false }
-                        }
-                    },
-                    onNavigateToListTest = {
-                        val popped = innerNavController.popBackStack("listtest", false)
-                        if (!popped) {
-                            innerNavController.navigate("listtest") {
-                                popUpTo("cart") { inclusive = true }
+                            innerNavController.navigate("main_tabs") {
+                                popUpTo(innerNavController.graph.findStartDestination().id) {
+                                    inclusive = false
+                                }
                                 launchSingleTop = true
                             }
                         }
+                        coroutineScope.launch {
+                            pagerState.scrollToPage(0)
+                        }
+                    },
+                    onNavigateToProfile = {
+                        innerNavController.popBackStack("main_tabs", false)
+                        coroutineScope.launch {
+                            pagerState.scrollToPage(2)
+                        }
+                    },
+                    onNavigateToListTest = {
+                        innerNavController.popBackStack("main_tabs", false)
+                        coroutineScope.launch {
+                            pagerState.scrollToPage(1)
+                        }
                     },
                     onNavigateToHome = {
-                        innerNavController.navigate("home") {
-                            popUpTo("home") { inclusive = false }
+                        innerNavController.popBackStack("main_tabs", false)
+                        coroutineScope.launch {
+                            pagerState.scrollToPage(0)
                         }
                     },
                     onNavigateToOrderStatus = {
                         innerNavController.navigate("orderstatus") {
-                            popUpTo("home") { inclusive = false }
+                            popUpTo("main_tabs") { inclusive = false }
                         }
                     }
                 )
@@ -443,22 +447,25 @@ fun MainScreen(
                 OrderReviewScreen(
                     bookingViewModel = bookingViewModel,
                     userViewModel = userViewModel,
+                    historyViewModel = historyViewModel,
                     onBack = {
                         innerNavController.popBackStack()
                     },
                     onNavigateToProfile = {
-                        innerNavController.navigate("user") {
-                            popUpTo("home") { inclusive = false }
+                        innerNavController.popBackStack("main_tabs", false)
+                        coroutineScope.launch {
+                            pagerState.scrollToPage(2)
                         }
                     },
                     onNavigateToHome = {
-                        innerNavController.navigate("home") {
-                            popUpTo("home") { inclusive = false }
+                        innerNavController.popBackStack("main_tabs", false)
+                        coroutineScope.launch {
+                            pagerState.scrollToPage(0)
                         }
                     },
                     onNavigateToOrderStatus = {
                         innerNavController.navigate("orderstatus") {
-                            popUpTo("home") { inclusive = false }
+                            popUpTo("main_tabs") { inclusive = false }
                         }
                     }
                 )
@@ -479,6 +486,10 @@ fun MainScreen(
                                 launchSingleTop = true
                             }
                         }
+                    },
+                    onNavigateToResult = { bookingId, testId, date ->
+                        val dateArg = if (date != null) "?date=${android.net.Uri.encode(date)}" else ""
+                        innerNavController.navigate("result/$bookingId/$testId$dateArg")
                     }
                 )
             }

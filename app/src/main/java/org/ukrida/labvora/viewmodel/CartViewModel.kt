@@ -162,9 +162,20 @@ class CartViewModel : ViewModel() {
         context?.let { persistCart(it) }
     }
 
-    fun checkoutCheckedItems(userId: Int, context: Context? = null, onComplete: () -> Unit = {}) {
+    fun checkoutCheckedItems(
+        userId: Int,
+        context: Context? = null,
+        maxAllowedQuota: Int = 3,
+        onQuotaExceeded: (() -> Unit)? = null,
+        onComplete: () -> Unit = {}
+    ) {
         val itemsToCheckout = _cartItems.value.filter { it.isChecked }
         if (itemsToCheckout.isEmpty() || isCheckingOut.value) return
+        if (itemsToCheckout.size > maxAllowedQuota) {
+            onQuotaExceeded?.invoke()
+            toastMessage.value = "Jumlah pesanan melebihi sisa kuota yang tersedia ($maxAllowedQuota pesanan)."
+            return
+        }
 
         viewModelScope.launch {
             isCheckingOut.value = true

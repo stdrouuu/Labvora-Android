@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material.icons.outlined.WbTwilight
@@ -32,6 +33,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.ukrida.labvora.viewmodel.BookingViewModel
+import org.ukrida.labvora.viewmodel.HistoryViewModel
+import org.ukrida.labvora.viewmodel.UserViewModel
 import org.ukrida.labvora.ui.components.EducationDisclaimerBanner
 import java.util.Calendar
 
@@ -42,6 +45,8 @@ import org.ukrida.labvora.viewmodel.CartViewModel
 fun BookScheduleScreen(
     bookingViewModel: BookingViewModel,
     cartViewModel: CartViewModel = remember { CartViewModel() },
+    historyViewModel: HistoryViewModel? = null,
+    userViewModel: UserViewModel? = null,
     onBack: () -> Unit,
     onNavigateToReview: () -> Unit,
     onNavigateToCart: () -> Unit = {}
@@ -51,6 +56,17 @@ fun BookScheduleScreen(
     val todayYear = today.get(Calendar.YEAR)
     val todayMonth = today.get(Calendar.MONTH)
     val todayDay = today.get(Calendar.DAY_OF_MONTH)
+
+    val userId = userViewModel?.currentUser?.value?.id ?: 0
+    LaunchedEffect(userId) {
+        if (userId > 0) {
+            historyViewModel?.getHistoryList(userId)
+        }
+    }
+
+    val activeOrderCount = historyViewModel?.activeOrderCount ?: 0
+    val remainingQuota = historyViewModel?.remainingOrderQuota ?: 3
+    var showMaxOrdersDialog by remember { mutableStateOf(false) }
 
     var currentYear by remember { mutableStateOf(todayYear) }
     var currentMonth by remember { mutableStateOf(todayMonth) } 
@@ -447,8 +463,48 @@ fun BookScheduleScreen(
                     .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                if (activeOrderCount >= 3) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
+                        border = BorderStroke(1.dp, Color(0xFFFCA5A5)),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = Color(0xFFDC2626),
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Column {
+                                Text(
+                                    text = "Batas Pemesanan Tercapai (3/3 Aktif)",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF991B1B)
+                                )
+                                Text(
+                                    text = "Anda memiliki 3 pesanan aktif yang belum selesai. Anda hanya dapat memesan lagi setelah ada pesanan yang selesai.",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFFB91C1C),
+                                    lineHeight = 15.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
                 OutlinedButton(
                     onClick = {
+                        if (activeOrderCount >= 3) {
+                            showMaxOrdersDialog = true
+                            return@OutlinedButton
+                        }
                         bookingViewModel.selectedTest?.let { test ->
                             cartViewModel.addToCart(
                                 test = test,
@@ -476,7 +532,13 @@ fun BookScheduleScreen(
                 }
 
                 Button(
-                    onClick = onNavigateToReview,
+                    onClick = {
+                        if (activeOrderCount >= 3) {
+                            showMaxOrdersDialog = true
+                            return@Button
+                        }
+                        onNavigateToReview()
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3CB7A6)),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier
@@ -495,6 +557,48 @@ fun BookScheduleScreen(
                 )
             }
         }
+    }
+
+    if (showMaxOrdersDialog) {
+        AlertDialog(
+            onDismissRequest = { showMaxOrdersDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = Color(0xFFDC2626),
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Batas Pemesanan Tercapai",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center
+                )
+            },
+            text = {
+                Text(
+                    text = "Setiap pengguna hanya dapat memiliki maksimal 3 pesanan aktif yang belum diselesaikan. Anda baru dapat memesan kembali jika salah satu pesanan Anda telah diselesaikan.",
+                    fontSize = 13.sp,
+                    color = Color(0xFF4B5563),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 18.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showMaxOrdersDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3CB7A6)),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Mengerti", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 }
 

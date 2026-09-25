@@ -44,6 +44,21 @@ class HistoryViewModel : ViewModel() {
         _searchQuery.value = ""
     }
 
+    // Pesanan aktif yang belum selesai dan belum dibatalkan (dihitung untuk batasan max 3 pesanan)
+    val activeOrders: List<TestHistoryItem>
+        get() = _pendingOrders.value.filter {
+            !it.status.equals("Selesai", ignoreCase = true) && !it.status.equals("Dibatalkan", ignoreCase = true)
+        }
+
+    val activeOrderCount: Int
+        get() = activeOrders.size
+
+    val remainingOrderQuota: Int
+        get() = maxOf(0, 3 - activeOrderCount)
+
+    val canMakeNewOrder: Boolean
+        get() = activeOrderCount < 3
+
     fun getHistoryList(userId: Int, forceRefresh: Boolean = false) {
         // PERF: cegah tembakan ganda (recompose cepat = request dobel).
         if (isFetching && !forceRefresh) return
