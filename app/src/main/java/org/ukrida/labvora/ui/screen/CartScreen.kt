@@ -248,10 +248,11 @@ fun CartScreen(
                     if (userId > 0) {
                         cartViewModel.initCartForUser(context, userId)
                     }
-                    kotlinx.coroutines.delay(500)
+                    kotlinx.coroutines.delay(400)
                     isRefreshing = false
                 }
             },
+            threshold = 40.dp,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)

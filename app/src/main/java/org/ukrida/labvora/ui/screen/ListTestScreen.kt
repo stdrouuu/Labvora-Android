@@ -123,10 +123,11 @@ fun ListTestScreen(
         onRefresh = {
             coroutineScope.launch {
                 isRefreshing = true
-                delay(600)
+                delay(450)
                 isRefreshing = false
             }
         },
+        threshold = 44.dp,
         modifier = Modifier.fillMaxSize()
     ) {
         Column(

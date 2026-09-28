@@ -110,6 +110,7 @@ fun HomeScreen(
                 historyViewModel.getHistoryList(homeUserId, forceRefresh = true)
             }
         },
+        threshold = 44.dp,
         modifier = Modifier.fillMaxSize()
     ) {
         Column(

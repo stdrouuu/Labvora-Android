@@ -128,6 +128,7 @@ fun ProfileScreen(
                     }
                 }
             },
+            threshold = 44.dp,
             modifier = Modifier.fillMaxSize()
         ) {
             Column(
