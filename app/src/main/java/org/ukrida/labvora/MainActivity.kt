@@ -92,7 +92,11 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigatePrivacyPolicy = {
                                 // ponytail: external URL replaces in-app screen, no route needed
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://labvora.ifukrida.net/privacy-policy.html")))
+                                try {
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://labvora.ifukrida.net/privacy-policy.html")))
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
                         )
                     }

@@ -685,19 +685,18 @@ fun PromoBannerCard(
         ) {
             Column(
                 modifier = Modifier
-                    .weight(1.35f)
+                    .weight(1.4f)
                     .fillMaxHeight()
-                    .padding(start = 14.dp, top = 12.dp, bottom = 12.dp, end = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 6.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = title,
-                    fontSize = 14.sp,
+                    fontSize = 13.5.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1F2937),
-                    lineHeight = 18.sp,
-                    maxLines = 2,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    lineHeight = 17.sp,
+                    maxLines = 3,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Column(
@@ -705,7 +704,7 @@ fun PromoBannerCard(
                         .fillMaxWidth()
                         .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp))
                         .border(1.dp, Color(0xFFF3F4F6), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                        .padding(horizontal = 8.dp, vertical = 5.dp)
                 ) {
                     Text(
                         text = discountText,

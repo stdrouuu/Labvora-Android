@@ -424,7 +424,7 @@ fun RegisterScreen(
                             TextField(
                                 value = password,
                                 onValueChange = { password = it },
-                                placeholder = { Text("Minimal 8 karakter", color = Color(0xFF9CA3AF), fontSize = 14.sp) },
+                                placeholder = { Text("Minimal 4 karakter", color = Color(0xFF9CA3AF), fontSize = 14.sp) },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.Default.Lock,
@@ -699,7 +699,12 @@ fun RegisterScreen(
                         ) {
                             Checkbox(
                                 checked = isTermsChecked,
-                                onCheckedChange = { isTermsChecked = it },
+                                onCheckedChange = { checked ->
+                                    isTermsChecked = checked
+                                    if (checked) {
+                                        onNavigatePrivacyPolicy()
+                                    }
+                                },
                                 colors = CheckboxDefaults.colors(
                                     checkedColor = Color(0xFF3CAEA3),
                                     uncheckedColor = Color(0xFF9CA3AF)
@@ -715,7 +720,13 @@ fun RegisterScreen(
                                     .clickable(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null
-                                    ) { isTermsChecked = !isTermsChecked },
+                                    ) {
+                                        val next = !isTermsChecked
+                                        isTermsChecked = next
+                                        if (next) {
+                                            onNavigatePrivacyPolicy()
+                                        }
+                                    },
                                 horizontalArrangement = Arrangement.Start,
                                 verticalArrangement = Arrangement.Center
                             ) {
@@ -729,7 +740,10 @@ fun RegisterScreen(
                                     modifier = Modifier.clickable(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null
-                                    ) { onNavigatePrivacyPolicy() }
+                                    ) {
+                                        isTermsChecked = true
+                                        onNavigatePrivacyPolicy()
+                                    }
                                 ) {
                                     Text(
                                         text = "Kebijakan Privasi",
@@ -785,8 +799,8 @@ fun RegisterScreen(
                         errorMessage = "Semua field input harus diisi!"
                     } else if (username.trim().length < 3) {
                         errorMessage = "Username minimal 3 karakter!"
-                    } else if (password.length < 8) {
-                        errorMessage = "Kata sandi minimal 8 karakter!"
+                    } else if (password.length < 4) {
+                        errorMessage = "Kata sandi minimal 4 karakter!"
                     } else if (phone.length < 9 || phone.length > 14 || !phone.all { it.isDigit() }) {
                         errorMessage = "Nomor telepon harus berupa 9-14 digit angka!"
                     } else if (!emailPattern.matches(trimmedEmail) || !tld.all { it.isLetter() } || domainName.isBlank() || domainName.all { it.isDigit() } || domainPart.length < 4 || !android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
