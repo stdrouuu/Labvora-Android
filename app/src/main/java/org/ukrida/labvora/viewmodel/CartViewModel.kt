@@ -26,8 +26,15 @@ class CartViewModel : ViewModel() {
     val showCheckoutSuccessModal = mutableStateOf(false)
     val isCheckingOut = mutableStateOf(false)
 
+    companion object {
+        const val MAX_CART_ITEMS = 5
+    }
+
     val cartItemCount: Int
         get() = _cartItems.value.size
+
+    val isCartFull: Boolean
+        get() = _cartItems.value.size >= MAX_CART_ITEMS
 
     val checkedCount: Int
         get() = _cartItems.value.count { it.isChecked }
@@ -100,7 +107,11 @@ class CartViewModel : ViewModel() {
         bookingTime: String = "14:00",
         hasDoctorReferral: Boolean = false,
         context: Context? = null
-    ) {
+    ): Boolean {
+        if (_cartItems.value.size >= MAX_CART_ITEMS) {
+            toastMessage.value = "Keranjang sudah penuh (maksimal $MAX_CART_ITEMS item)"
+            return false
+        }
         val currentList = _cartItems.value.toMutableList()
         currentList.add(
             CartItem(
@@ -115,6 +126,7 @@ class CartViewModel : ViewModel() {
         _cartItems.value = currentList
         context?.let { persistCart(it) }
         toastMessage.value = "${test.title} berhasil ditambahkan ke Keranjang!"
+        return true
     }
 
     fun removeFromCart(cartItemId: String, context: Context? = null) {

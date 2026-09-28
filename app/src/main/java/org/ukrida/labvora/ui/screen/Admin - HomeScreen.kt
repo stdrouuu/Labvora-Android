@@ -88,7 +88,6 @@ fun AdminHomeScreen(
         LabvoraPullToRefreshBox(
             isRefreshing = viewModel.isRefreshing.value,
             onRefresh = { viewModel.getBookings(forceRefresh = true) },
-            threshold = 44.dp,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)

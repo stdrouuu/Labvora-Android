@@ -181,7 +181,6 @@ fun OrderStatusScreen(
                     historyViewModel.getHistoryList(userId, forceRefresh = true)
                 }
             },
-            threshold = 40.dp,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)

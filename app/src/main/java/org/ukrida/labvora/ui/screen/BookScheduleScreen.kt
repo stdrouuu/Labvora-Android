@@ -1,5 +1,6 @@
 package org.ukrida.labvora.ui.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -190,6 +191,8 @@ fun BookScheduleScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(24.dp))
+
             // Monthly Calendar Card
             Card(
                 modifier = Modifier
@@ -361,6 +364,8 @@ fun BookScheduleScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Time Slots Section
             Column(
                 modifier = Modifier
@@ -501,12 +506,12 @@ fun BookScheduleScreen(
 
                 OutlinedButton(
                     onClick = {
-                        if (activeOrderCount >= 3) {
-                            showMaxOrdersDialog = true
+                        if (cartViewModel.isCartFull) {
+                            Toast.makeText(context, "Keranjang sudah penuh (maksimal ${CartViewModel.MAX_CART_ITEMS} item)", Toast.LENGTH_SHORT).show()
                             return@OutlinedButton
                         }
                         bookingViewModel.selectedTest?.let { test ->
-                            cartViewModel.addToCart(
+                            val added = cartViewModel.addToCart(
                                 test = test,
                                 clinicName = bookingViewModel.selectedClinic,
                                 bookingDate = bookingViewModel.selectedDate,
@@ -514,7 +519,9 @@ fun BookScheduleScreen(
                                 hasDoctorReferral = bookingViewModel.hasDoctorReferral,
                                 context = context
                             )
-                            onNavigateToCart()
+                            if (added) {
+                                onNavigateToCart()
+                            }
                         }
                     },
                     shape = RoundedCornerShape(16.dp),

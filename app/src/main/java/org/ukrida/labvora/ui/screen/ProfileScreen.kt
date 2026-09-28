@@ -128,7 +128,6 @@ fun ProfileScreen(
                     }
                 }
             },
-            threshold = 44.dp,
             modifier = Modifier.fillMaxSize()
         ) {
             Column(
@@ -310,7 +309,7 @@ fun ProfileScreen(
                         HorizontalDivider(color = Color(0xFFF9FAFB), thickness = 1.dp)
                         // Riwayat Pesanan — only shows completed orders via history page
                         ProfileMenuItem(
-                            icon = Icons.Default.ReceiptLong,
+                            icon = Icons.Default.AssignmentInd,
                             title = "Riwayat Pemeriksaan",
                             onClick = { onNavigateToHistory() }
                         )
@@ -1172,7 +1171,7 @@ fun ProfileMenuItem(
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(Color(0xFFE6F7F5), RoundedCornerShape(12.dp)),
+                .background(Color.White, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(

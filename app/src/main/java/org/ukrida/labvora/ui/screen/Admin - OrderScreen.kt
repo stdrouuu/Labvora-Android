@@ -122,7 +122,6 @@ fun AdminOrderScreen(
         LabvoraPullToRefreshBox(
             isRefreshing = viewModel.isRefreshing.value,
             onRefresh = { viewModel.getBookings(forceRefresh = true) },
-            threshold = 40.dp,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)

@@ -21,6 +21,9 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.EditCalendar
@@ -41,10 +44,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -57,6 +63,7 @@ import org.ukrida.labvora.viewmodel.CartViewModel
 import org.ukrida.labvora.viewmodel.HistoryViewModel
 import org.ukrida.labvora.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,7 +84,6 @@ fun CartScreen(
     val context = LocalContext.current
     val cartItems = cartViewModel.cartItems.value
     val userId = userViewModel.currentUser.value?.id ?: 0
-
     LaunchedEffect(userId) {
         if (userId > 0) {
             historyViewModel?.getHistoryList(userId)
@@ -88,6 +94,7 @@ fun CartScreen(
     val remainingQuota = historyViewModel?.remainingOrderQuota ?: 3
     var showOrderLimitDialog by remember { mutableStateOf(false) }
     var orderLimitDialogMessage by remember { mutableStateOf("") }
+    var showCheckoutConfirmDialog by remember { mutableStateOf(false) }
 
     var editingCartItem by remember { mutableStateOf<CartItem?>(null) }
     var deletingCartItem by remember { mutableStateOf<CartItem?>(null) }
@@ -109,8 +116,23 @@ fun CartScreen(
             TopAppBar(
                 title = {
                     Column {
+                        val count = cartViewModel.cartItemCount
+                        val maxCount = CartViewModel.MAX_CART_ITEMS
+                        val titleText = if (count >= maxCount) {
+                            buildAnnotatedString {
+                                append("Keranjang Saya (")
+                                withStyle(SpanStyle(color = Color(0xFFF75F65))) {
+                                    append("$count/$maxCount PENUH")
+                                }
+                                append(")")
+                            }
+                        } else {
+                            buildAnnotatedString {
+                                append("Keranjang Saya ($count/$maxCount)")
+                            }
+                        }
                         Text(
-                            text = "Keranjang Saya (${cartViewModel.cartItemCount})",
+                            text = titleText,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Color(0xFF1F2937)
@@ -207,7 +229,7 @@ fun CartScreen(
                                     orderLimitDialogMessage = "Anda memilih $checked pesanan, sedangkan sisa kuota pemesanan Anda hanya $remainingQuota pesanan lagi (Anda saat ini memiliki $activeOrderCount pesanan yang belum diselesaikan). Silakan pilih maksimal $remainingQuota pesanan untuk checkout."
                                     showOrderLimitDialog = true
                                 } else {
-                                    cartViewModel.checkoutCheckedItems(userId, context, maxAllowedQuota = remainingQuota)
+                                    showCheckoutConfirmDialog = true
                                 }
                             },
                             enabled = cartViewModel.checkedCount > 0 && !cartViewModel.isCheckingOut.value,
@@ -252,7 +274,6 @@ fun CartScreen(
                     isRefreshing = false
                 }
             },
-            threshold = 40.dp,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -574,6 +595,263 @@ fun CartScreen(
             containerColor = Color.White,
             shape = RoundedCornerShape(16.dp)
         )
+    }
+
+    // Modal Konfirmasi Pesanan Sebelum Checkout (Poin 3)
+    if (showCheckoutConfirmDialog) {
+        val checkedItems = cartItems.filter { it.isChecked }
+        Dialog(
+            onDismissRequest = { showCheckoutConfirmDialog = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.92f)
+                    .wrapContentHeight()
+                    .padding(vertical = 20.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // Header / Judul
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Konfirmasi Pemesanan",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF1F2937),
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Apakah jadwal dan rincian pesanan Anda sudah sesuai?",
+                            fontSize = 13.sp,
+                            color = Color(0xFF4B5563),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    // 1. Card Daftar Pemeriksaan yang Dipilih
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(
+                                text = "Pemeriksaan Dipilih (${checkedItems.size} Item)",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1F2937)
+                            )
+
+                            checkedItems.forEachIndexed { index, item ->
+                                if (index > 0) {
+                                    HorizontalDivider(
+                                        color = Color(0xFFE5E7EB),
+                                        thickness = 0.5.dp
+                                    )
+                                }
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        Text(
+                                            text = item.test.title,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFF1F2937),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = item.test.price,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF3CB7A6)
+                                        )
+                                    }
+                                    Text(
+                                        text = "${item.bookingDate} • ${item.bookingTime} • ${displayClinicName(item.clinicName)}",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF6B7280)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // 2. Card Rincian Biaya
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Rincian Biaya",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1F2937)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Biaya Pengecekan (${checkedItems.size} item)",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF4B5563)
+                                )
+                                Text(
+                                    text = cartViewModel.subtotalPriceFormatted,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF1F2937)
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Biaya Layanan & Administrasi",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF4B5563)
+                                )
+                                Text(
+                                    text = cartViewModel.adminFeeFormatted,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF3CB7A6)
+                                )
+                            }
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                color = Color(0xFFE5E7EB)
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Total Pembayaran",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1F2937)
+                                )
+                                Text(
+                                    text = cartViewModel.totalPriceFormatted,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color(0xFFF75F65)
+                                )
+                            }
+                            Text(
+                                text = "* Total sudah termasuk biaya pengecekan dan biaya administrasi Rp 50.000.",
+                                fontSize = 10.sp,
+                                color = Color(0xFF6B7280),
+                                fontStyle = FontStyle.Italic,
+                                lineHeight = 14.sp
+                            )
+                        }
+                    }
+
+                    // 3. Card Info Pembayaran Langsung di Klinik
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE6F7F5)),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = Color(0xFF3CB7A6),
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Text(
+                                text = "Pembayaran dilakukan langsung di klinik pada saat kedatangan pemeriksaan.",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF2C8A7D),
+                                lineHeight = 17.sp
+                            )
+                        }
+                    }
+
+                    // 4. Tombol Aksi
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { showCheckoutConfirmDialog = false },
+                            shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(1.dp, Color(0xFFD1D5DB)),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                        ) {
+                            Text(
+                                text = "Cek Kembali",
+                                color = Color(0xFF4B5563),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                showCheckoutConfirmDialog = false
+                                cartViewModel.checkoutCheckedItems(userId, context, maxAllowedQuota = remainingQuota)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3CB7A6)),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                        ) {
+                            Text(
+                                text = "Sudah Sesuai",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Modal Success Checkout (2-Step Alert)
@@ -962,9 +1240,65 @@ fun EditScheduleDialog(
     onDismiss: () -> Unit,
     onConfirm: (clinic: String, date: String, time: String) -> Unit
 ) {
+    val todayCal = Calendar.getInstance()
+    val todayYear = todayCal.get(Calendar.YEAR)
+    val todayMonth = todayCal.get(Calendar.MONTH)
+    val todayDay = todayCal.get(Calendar.DAY_OF_MONTH)
+
+    val minYear = todayYear
+    val minMonth = todayMonth
+
+    val monthsIndo = listOf(
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    )
+    val dayNamesIndo = listOf("Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu")
+
+    fun getFormattedDate(year: Int, month: Int, day: Int): String {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month)
+            set(Calendar.DAY_OF_MONTH, day)
+        }
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        return "${dayNamesIndo[dayOfWeek - 1]}, $day ${monthsIndo[month]} $year"
+    }
+
+    // Inisialisasi parsing tanggal awal jika sudah ada di item
+    val initialParsed = remember(item.bookingDate) {
+        runCatching {
+            val parts = item.bookingDate.split(", ")
+            if (parts.size == 2) {
+                val dateParts = parts[1].trim().split(" ")
+                if (dateParts.size == 3) {
+                    val d = dateParts[0].toInt()
+                    val mName = dateParts[1]
+                    val y = dateParts[2].toInt()
+                    val m = monthsIndo.indexOf(mName)
+                    if (m != -1) Triple(y, m, d) else null
+                } else null
+            } else null
+        }.getOrNull()
+    }
+
+    val initialYear = initialParsed?.first ?: todayYear
+    val initialMonth = initialParsed?.second ?: todayMonth
+    val initialDay = initialParsed?.third ?: todayDay
+
+    var currentYear by remember { mutableIntStateOf(initialYear) }
+    var currentMonth by remember { mutableIntStateOf(initialMonth) }
+    var selectedDay by remember { mutableIntStateOf(initialDay) }
+    var selectedMonth by remember { mutableIntStateOf(initialMonth) }
+    var selectedYear by remember { mutableIntStateOf(initialYear) }
+
     var tempTimeSlot by remember { mutableStateOf(item.bookingTime) }
     var tempClinic by remember { mutableStateOf(item.clinicName) }
-    var tempDate by remember { mutableStateOf(item.bookingDate) }
+    var tempDate by remember {
+        mutableStateOf(
+            if (item.bookingDate.isNotBlank()) item.bookingDate
+            else getFormattedDate(initialYear, initialMonth, initialDay)
+        )
+    }
     var isClinicDropdownExpanded by remember { mutableStateOf(false) }
 
     val clinics = listOf(
@@ -983,23 +1317,266 @@ fun EditScheduleDialog(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        dragHandle = null,
         containerColor = Color.White,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 32.dp)
+                .fillMaxHeight(0.75f)
         ) {
-            Text(
-                text = "Jadwal Pemeriksaan",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF1F2937),
-                modifier = Modifier.padding(bottom = 16.dp)
+            // Header FIXED (Sticky): Teks di kiri, Tombol X di kanan
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 16.dp, top = 20.dp, bottom = 14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Ubah Jadwal Pemeriksaan",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF1F2937)
+                )
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Tutup",
+                        tint = Color(0xFF4B5563),
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
+            HorizontalDivider(color = Color(0xFFF3F4F6), thickness = 1.dp)
+
+            // Konten yang SCROLLABLE
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 20.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = 16.dp, bottom = 32.dp)
+            ) {
+                // Section 1: PILIH TANGGAL PEMERIKSAAN
+                Text(
+                    text = "PILIH TANGGAL PEMERIKSAAN",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Gray,
+                letterSpacing = 0.5.sp
             )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Card Kalender
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
+                border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    // Navigasi Bulan & Tahun
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val isPrevDisabled = (currentYear == minYear && currentMonth == minMonth)
+                        IconButton(
+                            onClick = {
+                                if (!isPrevDisabled) {
+                                    currentMonth--
+                                    if (currentMonth < 0) {
+                                        currentMonth = 11
+                                        currentYear--
+                                    }
+                                }
+                            },
+                            enabled = !isPrevDisabled
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ChevronLeft,
+                                contentDescription = "Bulan Sebelumnya",
+                                tint = if (isPrevDisabled) Color(0xFFD1D5DB) else Color(0xFF4B5563)
+                            )
+                        }
+                        Text(
+                            text = "${monthsIndo[currentMonth]} $currentYear",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1F2937)
+                        )
+                        IconButton(
+                            onClick = {
+                                currentMonth++
+                                if (currentMonth > 11) {
+                                    currentMonth = 0
+                                    currentYear++
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = "Bulan Selanjutnya",
+                                tint = Color(0xFF4B5563)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Days of Week Header
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        val daysHeader = listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
+                        daysHeader.forEach { day ->
+                            Text(
+                                text = day,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF9CA3AF)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Days Grid
+                    val calendar = Calendar.getInstance().apply {
+                        set(Calendar.YEAR, currentYear)
+                        set(Calendar.MONTH, currentMonth)
+                        set(Calendar.DAY_OF_MONTH, 1)
+                    }
+                    val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+                    val offset = if (firstDayOfWeek == Calendar.SUNDAY) 6 else firstDayOfWeek - 2
+                    val maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+
+                    val prevMonthCal = Calendar.getInstance().apply {
+                        set(Calendar.YEAR, currentYear)
+                        set(Calendar.MONTH, currentMonth - 1)
+                    }
+                    val maxDaysPrevMonth = prevMonthCal.getActualMaximum(Calendar.DAY_OF_MONTH)
+
+                    var dayCounter = 1
+                    var nextMonthDayCounter = 1
+
+                    for (row in 0 until 6) {
+                        if (dayCounter > maxDays) break
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            for (col in 0 until 7) {
+                                val cellIndex = row * 7 + col
+                                if (cellIndex < offset) {
+                                    val prevDay = maxDaysPrevMonth - (offset - cellIndex - 1)
+                                    Text(
+                                        text = "$prevDay",
+                                        modifier = Modifier.weight(1f),
+                                        textAlign = TextAlign.Center,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color(0xFFD1D5DB)
+                                    )
+                                } else if (dayCounter <= maxDays) {
+                                    val day = dayCounter
+                                    val isSelected = (day == selectedDay && currentMonth == selectedMonth && currentYear == selectedYear)
+                                    val isPastDay = (currentYear == todayYear && currentMonth == todayMonth && day < todayDay)
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .aspectRatio(1f)
+                                            .padding(2.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(
+                                                if (isSelected) Color(0xFF3CB7A6) else Color.Transparent
+                                            )
+                                            .clickable(enabled = !isPastDay) {
+                                                selectedDay = day
+                                                selectedMonth = currentMonth
+                                                selectedYear = currentYear
+                                                tempDate = getFormattedDate(currentYear, currentMonth, day)
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "$day",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = when {
+                                                isSelected -> Color.White
+                                                isPastDay -> Color(0xFFD1D5DB)
+                                                else -> Color(0xFF1F2937)
+                                            }
+                                        )
+                                    }
+                                    dayCounter++
+                                } else {
+                                    val nextDay = nextMonthDayCounter
+                                    Text(
+                                        text = "$nextDay",
+                                        modifier = Modifier.weight(1f),
+                                        textAlign = TextAlign.Center,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color(0xFFD1D5DB)
+                                    )
+                                    nextMonthDayCounter++
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Info Tanggal Terpilih (Teks dan Icon saja)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CalendarMonth,
+                    contentDescription = null,
+                    tint = Color(0xFF3CB7A6),
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Tanggal terpilih: $tempDate",
+                    fontSize = 12.sp,
+                    color = Color(0xFF374151),
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Section 2: PILIH JAM PEMERIKSAAN
+            Text(
+                text = "PILIH JAM PEMERIKSAAN",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Gray,
+                letterSpacing = 0.5.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Slot Pagi (Sunrise) — outline konsisten
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1178,6 +1755,7 @@ fun EditScheduleDialog(
             }
         }
     }
+}
 }
 
 @Composable

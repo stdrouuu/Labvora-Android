@@ -127,7 +127,6 @@ fun ListTestScreen(
                 isRefreshing = false
             }
         },
-        threshold = 44.dp,
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
