@@ -1171,7 +1171,8 @@ fun ProfileMenuItem(
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(Color.White, RoundedCornerShape(12.dp)),
+                .background(Color.White, RoundedCornerShape(12.dp))
+                .border(0.6.dp, Color(0xFFE5E7EB), RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(

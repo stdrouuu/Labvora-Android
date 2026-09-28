@@ -391,97 +391,12 @@ fun CartScreen(
                         )
                     }
 
-                    if (cartViewModel.checkedCount > 0) {
-                        item {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 4.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)
-                                ) {
-                                    Text(
-                                        text = "Rincian Biaya",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF1F2937)
-                                    )
-                                    Spacer(modifier = Modifier.height(10.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            text = "Biaya Pengecekan (${cartViewModel.checkedCount} item)",
-                                            fontSize = 12.sp,
-                                            color = Color(0xFF4B5563)
-                                        )
-                                        Text(
-                                            text = cartViewModel.subtotalPriceFormatted,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color(0xFF1F2937)
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            text = "Biaya Layanan & Administrasi",
-                                            fontSize = 12.sp,
-                                            color = Color(0xFF4B5563)
-                                        )
-                                        Text(
-                                            text = cartViewModel.adminFeeFormatted,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color(0xFF3CB7A6)
-                                        )
-                                    }
-                                    HorizontalDivider(
-                                        modifier = Modifier.padding(vertical = 10.dp),
-                                        color = Color(0xFFE5E7EB)
-                                    )
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            text = "Total Pembayaran",
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF1F2937)
-                                        )
-                                        Text(
-                                            text = cartViewModel.totalPriceFormatted,
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            color = Color(0xFFF75F65)
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "* Total sudah termasuk biaya pengecekan dan biaya administrasi Rp 50.000.",
-                                        fontSize = 10.sp,
-                                        color = Color(0xFF6B7280),
-                                        fontStyle = FontStyle.Italic
-                                    )
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    EducationDisclaimerBanner(
-                                         text = stringResource(org.ukrida.labvora.R.string.disclaimer_cart)
-                                     )
-                                 }
-                             }
-                         }
-                     }
+                    item {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        EducationDisclaimerBanner(
+                            text = stringResource(org.ukrida.labvora.R.string.disclaimer_cart)
+                        )
+                    }
                  }
              }
          }
