@@ -6,14 +6,16 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.ukrida.labvora.data.api.ApiService
+import org.ukrida.labvora.data.model.GenericResponse
 import org.ukrida.labvora.data.model.UploadPhotoResponse
 import org.ukrida.labvora.data.model.User
+import retrofit2.Response
 import java.io.File
 
 class UserRepository(private val api: ApiService) {
     suspend fun getUsers() = api.getUsers()
 
-    suspend fun insert(user: User) = api.insertUser(user)
+    suspend fun insert(user: User): Response<GenericResponse> = api.insertUser(user)
 
     suspend fun update(user: User) = api.updateUser(user)
 

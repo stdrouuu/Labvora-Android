@@ -783,7 +783,11 @@ fun RegisterScreen(
 
                     if (name.isBlank() || username.isBlank() || password.isBlank() || email.isBlank() || phone.isBlank() || dob.isBlank() || address.isBlank()) {
                         errorMessage = "Semua field input harus diisi!"
-                    } else if (phone.length < 9 || phone.length > 14) {
+                    } else if (username.trim().length < 3) {
+                        errorMessage = "Username minimal 3 karakter!"
+                    } else if (password.length < 8) {
+                        errorMessage = "Kata sandi minimal 8 karakter!"
+                    } else if (phone.length < 9 || phone.length > 14 || !phone.all { it.isDigit() }) {
                         errorMessage = "Nomor telepon harus berupa 9-14 digit angka!"
                     } else if (!emailPattern.matches(trimmedEmail) || !tld.all { it.isLetter() } || domainName.isBlank() || domainName.all { it.isDigit() } || domainPart.length < 4 || !android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
                         errorMessage = "Format alamat email tidak valid!"

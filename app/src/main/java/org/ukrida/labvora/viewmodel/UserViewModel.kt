@@ -5,11 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import org.ukrida.labvora.data.model.User
 import org.ukrida.labvora.data.repository.UserRepository
 import org.ukrida.labvora.util.compressImageForUpload
 import org.ukrida.labvora.util.deleteCompressedTemp
+import retrofit2.HttpException
 import java.io.File
+import java.io.IOException
 
 class UserViewModel(private val repo: UserRepository) : ViewModel() {
 
@@ -102,6 +105,21 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
         }
     }
 
+    // Helper untuk mengekstrak pesan error dari response body / error body API
+    private fun parseErrorMessage(errorBody: String?, fallback: String): String {
+        if (errorBody.isNullOrBlank()) return fallback
+        return try {
+            val json = JSONObject(errorBody)
+            when {
+                json.has("message") && json.optString("message").isNotBlank() -> json.optString("message")
+                json.has("error") && json.optString("error").isNotBlank() -> json.optString("error")
+                else -> fallback
+            }
+        } catch (_: Exception) {
+            fallback
+        }
+    }
+
     // State register — dipakai jika UI ingin menunggu hasil server
     var isRegistering = mutableStateOf(false)
     var registerError = mutableStateOf<String?>(null)
@@ -117,7 +135,20 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
             try {
                 val response = repo.insert(user)
                 if (!response.isSuccessful) {
-                    throw Exception("Server menolak registrasi (${response.code()})")
+                    val errMsg = parseErrorMessage(
+                        response.errorBody()?.string(),
+                        "Registrasi gagal (${response.code()})"
+                    )
+                    registerError.value = errMsg
+                    onError(errMsg)
+                    return@launch
+                }
+                val body = response.body()
+                if (body != null && !body.success) {
+                    val errMsg = body.message ?: "Registrasi gagal"
+                    registerError.value = errMsg
+                    onError(errMsg)
+                    return@launch
                 }
                 // Tambah ke list lokal HANYA jika server sukses.
                 // Sebelumnya user ditambah walau DB gagal -> login bypass offline.
@@ -126,14 +157,27 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
                     list.add(user)
                 }
                 users.value = list
-                isRegistering.value = false
                 onSuccess()
-            } catch (e: Exception) {
+            } catch (e: HttpException) {
                 e.printStackTrace()
-                isRegistering.value = false
-                val errMsg = "Registrasi gagal. Periksa koneksi internet Anda."
+                val errMsg = parseErrorMessage(
+                    e.response()?.errorBody()?.string(),
+                    "Gagal registrasi: server error (${e.code()})"
+                )
                 registerError.value = errMsg
                 onError(errMsg)
+            } catch (e: IOException) {
+                e.printStackTrace()
+                val errMsg = "Tidak dapat terhubung ke server. Periksa koneksi internet Anda."
+                registerError.value = errMsg
+                onError(errMsg)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                val errMsg = e.localizedMessage ?: "Terjadi kesalahan. Silakan coba lagi."
+                registerError.value = errMsg
+                onError(errMsg)
+            } finally {
+                isRegistering.value = false
             }
         }
     }
@@ -222,22 +266,47 @@ class UserViewModel(private val repo: UserRepository) : ViewModel() {
                 }
                 val response = repo.insert(finalUser)
                 if (!response.isSuccessful) {
-                    throw Exception("Server menolak registrasi (${response.code()})")
+                    val errMsg = parseErrorMessage(
+                        response.errorBody()?.string(),
+                        "Registrasi gagal (${response.code()})"
+                    )
+                    registerError.value = errMsg
+                    onError(errMsg)
+                    return@launch
+                }
+                val body = response.body()
+                if (body != null && !body.success) {
+                    val errMsg = body.message ?: "Registrasi gagal"
+                    registerError.value = errMsg
+                    onError(errMsg)
+                    return@launch
                 }
                 val list = users.value.toMutableList()
                 if (!list.any { it.username == finalUser.username }) {
                     list.add(finalUser)
                 }
                 users.value = list
-                isRegistering.value = false
                 onSuccess()
+            } catch (e: HttpException) {
+                e.printStackTrace()
+                val errMsg = parseErrorMessage(
+                    e.response()?.errorBody()?.string(),
+                    "Gagal registrasi: server error (${e.code()})"
+                )
+                registerError.value = errMsg
+                onError(errMsg)
+            } catch (e: IOException) {
+                e.printStackTrace()
+                val errMsg = "Tidak dapat terhubung ke server. Periksa koneksi internet Anda."
+                registerError.value = errMsg
+                onError(errMsg)
             } catch (e: Exception) {
                 e.printStackTrace()
-                isRegistering.value = false
-                val errMsg = "Registrasi gagal. Periksa koneksi internet Anda."
+                val errMsg = e.localizedMessage ?: "Terjadi kesalahan. Silakan coba lagi."
                 registerError.value = errMsg
                 onError(errMsg)
             } finally {
+                isRegistering.value = false
                 deleteCompressedTemp(toUpload, photoFile)
             }
         }

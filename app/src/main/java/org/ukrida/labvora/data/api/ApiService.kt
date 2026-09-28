@@ -4,6 +4,7 @@ package org.ukrida.labvora.data.api
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import org.ukrida.labvora.data.model.AdminBooking
+import org.ukrida.labvora.data.model.GenericResponse
 import org.ukrida.labvora.data.model.TestHistoryItem
 import org.ukrida.labvora.data.model.UploadPhotoResponse
 import org.ukrida.labvora.data.model.User
@@ -22,7 +23,7 @@ interface ApiService {
     @POST(value = "users.php")
     suspend fun insertUser(
         @Body user: User
-    ): Response<Unit>
+    ): Response<GenericResponse>
 
     @POST(value = "update_user.php")
     suspend fun updateUser(
